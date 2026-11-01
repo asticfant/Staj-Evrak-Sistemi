@@ -1,45 +1,94 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - StajEvrakSistemi</title>
+    <title>@ViewData["Title"] – Staj Evrak Sistemi</title>
     <script type="importmap"></script>
+    @* Yazı tipleri ve ikonlar projenin içinde (wwwroot/lib); internet olmadan da çalışır. *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/fonts/fonts.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/StajEvrakSistemi.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">StajEvrakSistemi</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+    @{
+        // Rol bilgisi giriş sırasında cookie'ye claim olarak yazılır (AuthService.ClaimsOlustur).
+        // User.IsInRole o claim'e bakar; veritabanına gitmez.
+        var girisYapti = User.Identity?.IsAuthenticated == true;
+        var adminMi = User.IsInRole(nameof(UserRole.Admin));
+        var ogrenciMi = User.IsInRole(nameof(UserRole.Student));
+
+        // Menüde o an açık olan sayfayı vurgulamak için
+        var aktifController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var aktifAction = ViewContext.RouteData.Values["action"]?.ToString();
+        string Aktif(string controller, string action) =>
+            controller == aktifController && action == aktifAction ? "active" : "";
+    }
+    <header class="ust-bar">
+        <nav class="navbar navbar-expand-md navbar-dark">
+            <div class="container">
+                <a class="marka" asp-controller="Home" asp-action="Index">
+                    <span class="marka-muhur" aria-hidden="true">E16</span>
+                    <span>Staj Evrak Sistemi</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#anaMenu"
+                        aria-controls="anaMenu" aria-expanded="false" aria-label="Menüyü aç/kapat">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                <div class="collapse navbar-collapse" id="anaMenu">
+                    <ul class="navbar-nav ms-md-4 me-auto">
+                        @if (ogrenciMi)
+                        {
+                            <li class="nav-item"><a class="nav-link @Aktif("Student", "Belgelerim")" asp-controller="Student" asp-action="Belgelerim"><i class="bi bi-folder2-open"></i>Belgelerim</a></li>
+                            <li class="nav-item"><a class="nav-link @Aktif("Student", "EvrakYukle")" asp-controller="Student" asp-action="EvrakYukle"><i class="bi bi-upload"></i>Evrak yükle</a></li>
+                            <li class="nav-item"><a class="nav-link @Aktif("Student", "Profil")" asp-controller="Student" asp-action="Profil"><i class="bi bi-person"></i>Profil</a></li>
+                        }
+                        else if (adminMi)
+                        {
+                            <li class="nav-item"><a class="nav-link @Aktif("Admin", "Belgeler")" asp-controller="Admin" asp-action="Belgeler"><i class="bi bi-files"></i>Belgeler</a></li>
+                            <li class="nav-item"><a class="nav-link @Aktif("Admin", "Tamamlananlar")" asp-controller="Admin" asp-action="Tamamlananlar"><i class="bi bi-patch-check"></i>Tamamlananlar</a></li>
+                            <li class="nav-item"><a class="nav-link @Aktif("Admin", "VeriSetiYukle")" asp-controller="Admin" asp-action="VeriSetiYukle"><i class="bi bi-table"></i>Veri seti</a></li>
+                        }
                     </ul>
+
+                    @if (girisYapti)
+                    {
+                        <div class="kullanici">
+                            <i class="bi bi-person-circle" aria-hidden="true"></i>
+                            <span>@(User.Identity?.Name)</span>
+                            <span class="kullanici-rol">@(adminMi ? "Admin" : "Öğrenci")</span>
+                            @* Çıkış bir link değil POST formu: başka bir sayfadaki gizli bir link
+                               kullanıcıyı habersizce çıkış yaptıramasın.
+                               method="post" olan form tag helper'ı anti-forgery token'ı kendisi ekler. *@
+                            <form asp-controller="Account" asp-action="Cikis" method="post" class="ms-2">
+                                <button type="submit" class="btn btn-sm btn-cikis">Çıkış yap</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav">
+                            <li class="nav-item"><a class="nav-link @Aktif("Account", "Giris")" asp-controller="Account" asp-action="Giris">Giriş yap</a></li>
+                            <li class="nav-item"><a class="nav-link @Aktif("Account", "Kayit")" asp-controller="Account" asp-action="Kayit">Kayıt ol</a></li>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main role="main" class="sayfa">
         <div class="container">
-            &copy; 2026 - StajEvrakSistemi - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <partial name="_Mesaj" />
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="alt-bilgi">
+        <div class="container">
+            Kocaeli Üniversitesi Yazılım Mühendisliği, Programlama Laboratuvarı III projesi
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
