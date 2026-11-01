@@ -1,0 +1,187 @@
+@startuml sinif-1-modeller
+title Sınıf Diyagramı 1 – Modeller ve Enumlar
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Enums" {
+  enum UserRole {
+    Student
+    Admin
+  }
+  enum DocumentDurum {
+    Yuklendi
+    Inceleniyor
+    HataliEksik
+    Onaylandi
+    Tamamlandi
+  }
+  enum DosyaTuru {
+    Doc
+    Docx
+    Pdf
+    Jpeg
+    Png
+  }
+  enum IssueTuru {
+    Uyusmazlik
+    Okunamadi
+    BosAlan
+    FormatHatasi
+    Uyari
+  }
+}
+
+package "Models" {
+  abstract class User {
+    + Id : int
+    + KullaniciAdi : string
+    + Email : string
+    + SifreHash : string {readOnly}
+    + Rol : UserRole {readOnly}
+    + HataliGirisSayisi : int {readOnly}
+    + KilitBitisZamani : DateTime? {readOnly}
+    + {static} MaxHataliGiris : int = 5
+    + {static} KilitSuresiDakika : int = 15
+    + KilitliMi() : bool
+    + HataliGirisKaydet()
+    + SayaciSifirla()
+  }
+
+  class Student {
+    + AdSoyad : string
+    + TcKimlikNo : string
+    + Uyruk : string
+    + OgrenciNo : string
+    + DogumTarihi : DateTime?
+    + Adres : string
+    + Bolum : string
+    + Telefon : string
+    + SaglikYardimiStatusu : string
+    + OncekiStajGunSayisi : int
+    + GoogleFormUrl : string?
+    + YabanciMi() : bool
+    + ProfilTamamMi() : bool
+  }
+
+  class Admin
+
+  class Document {
+    + Id : int
+    + StudentId : int
+    + DosyaYolu : string
+    + DosyaTuru : DosyaTuru
+    + Durum : DocumentDurum {readOnly}
+    + YuklenmeTarihi : DateTime
+    + IncelemeyeAl()
+    + HataliOlarakIsaretle()
+    + Onayla()
+    + Tamamla()
+    + YenidenKontrolEt()
+    + DegistirilebilirMi(rol : UserRole) : bool
+    + DurumAta(yeni : DocumentDurum, yapanRol : UserRole)
+    - DurumDegistir(yeni : DocumentDurum)
+  }
+
+  class StajBilgisi {
+    + Id : int
+    + DocumentId : int
+    + Ek16TeslimYili : string
+    + StajBaslangic : DateTime
+    + StajBitis : DateTime
+    + CalisilanGunler : List<DayOfWeek>
+    + IsyeriAdi : string
+    + IsyeriAdresi : string
+    + IsyeriTelefon : string
+    + IsyeriEmail : string
+    + MuhendisSayisi : int
+    + MuhendisBolumu : string
+  }
+
+  class OkunanAlan {
+    + Id : int
+    + DocumentId : int
+    + AlanAdi : string
+    + Deger : string
+  }
+
+  class ValidationIssue {
+    + Id : int
+    + DocumentId : int
+    + AlanAdi : string
+    + GirilenDeger : string?
+    + OkunanDeger : string?
+    + Mesaj : string
+    + Tur : IssueTuru
+  }
+
+  class LoginLog {
+    + Id : int
+    + KullaniciAdi : string
+    + Tarih : DateTime
+    + BasariliMi : bool
+  }
+
+  class VeriSetiKaydi {
+    + Id : int
+    + AdSoyad : string
+    + TcKimlikNo : string
+    + Uyruk : string
+    + OgrenciNo : string
+    + DogumTarihi : DateTime
+    + Adres : string
+    + Bolum : string
+    + Ek16TeslimYili : string
+    + OncekiStajGunSayisi : int
+    + Email : string
+    + Telefon : string
+    + SaglikYardimiStatusu : string
+  }
+}
+
+User <|-- Student
+User <|-- Admin
+
+User --> UserRole
+Document --> DocumentDurum
+Document --> DosyaTuru
+ValidationIssue --> IssueTuru
+
+Student "1" -- "0..*" Document
+Document "1" *-- "1" StajBilgisi
+Document "1" -- "0..*" OkunanAlan
+Document "1" -- "0..*" ValidationIssue
+
+note right of Student
+  Öğrenci kendisi kayıt olur.
+  Kişisel bilgileri kayıttan sonra
+  profil formunda bir kez girer.
+end note
+
+note right of StajBilgisi
+  Her belge yüklemesinde
+  öğrencinin formda girdiği
+  staja özgü bilgiler.
+end note
+
+note right of Document
+  {readOnly} alanlar kodda "private set".
+  Onayla() → sistem (hata yoksa)
+  Tamamla() → admin
+  YenidenKontrolEt() → öğrenci formu düzeltince
+  DurumAta() → sadece admin (elle düzeltme)
+  Tamamlandı belgeyi sadece Admin
+  değiştirebilir / silebilir.
+end note
+
+note bottom of VeriSetiKaydi
+  Admin'in yüklediği Excel'den gelir.
+  Kullanıcı hesabı DEĞİLDİR, sadece
+  admin tarafı karşılaştırma içindir.
+  Belgeyle OgrenciNo üzerinden eşleşir.
+end note
+
+note bottom of LoginLog
+  Kullanıcıya FK ile değil,
+  KullaniciAdi ile bağlı.
+end note
+@enduml

@@ -1,0 +1,111 @@
+@startuml er-diyagrami
+title ER Diyagramı – Veritabanı Tabloları
+hide circle
+skinparam linetype ortho
+
+entity "Users (TPH)" as Users {
+  * Id : int <<PK>>
+  --
+  * KullaniciAdi : string <<unique>>
+  * Email : string <<unique>>
+  * SifreHash : string
+  * Rol : string
+  * HataliGirisSayisi : int
+  KilitBitisZamani : datetime
+  --
+  Student alanları (Admin için NULL)
+  AdSoyad : string
+  TcKimlikNo : string
+  Uyruk : string
+  OgrenciNo : string
+  DogumTarihi : date
+  Adres : string
+  Bolum : string
+  Telefon : string
+  SaglikYardimiStatusu : string
+  OncekiStajGunSayisi : int
+  GoogleFormUrl : string
+}
+
+entity "Documents" as Documents {
+  * Id : int <<PK>>
+  --
+  * StudentId : int <<FK>>
+  * DosyaYolu : string
+  * DosyaTuru : string
+  * Durum : string
+  * YuklenmeTarihi : datetime
+}
+
+entity "StajBilgileri" as Staj {
+  * Id : int <<PK>>
+  --
+  * DocumentId : int <<FK, unique>>
+  * Ek16TeslimYili : string
+  * StajBaslangic : date
+  * StajBitis : date
+  * CalisilanGunler : string
+  * IsyeriAdi : string
+  * IsyeriAdresi : string
+  * IsyeriTelefon : string
+  * IsyeriEmail : string
+  * MuhendisSayisi : int
+  * MuhendisBolumu : string
+}
+
+entity "OkunanAlanlar" as Okunan {
+  * Id : int <<PK>>
+  --
+  * DocumentId : int <<FK>>
+  * AlanAdi : string
+  Deger : string
+}
+
+entity "ValidationIssues" as Issues {
+  * Id : int <<PK>>
+  --
+  * DocumentId : int <<FK>>
+  * AlanAdi : string
+  GirilenDeger : string
+  OkunanDeger : string
+  * Mesaj : string
+  * Tur : string
+}
+
+entity "LoginLogs" as Logs {
+  * Id : int <<PK>>
+  --
+  * KullaniciAdi : string
+  * Tarih : datetime
+  * BasariliMi : bool
+}
+
+entity "VeriSetiKayitlari" as VeriSeti {
+  * Id : int <<PK>>
+  --
+  * OgrenciNo : string <<unique>>
+  * AdSoyad : string
+  * TcKimlikNo : string
+  * Uyruk : string
+  * DogumTarihi : date
+  * Adres : string
+  * Bolum : string
+  * Ek16TeslimYili : string
+  * OncekiStajGunSayisi : int
+  * Email : string
+  * Telefon : string
+  * SaglikYardimiStatusu : string
+}
+
+Users ||--o{ Documents : "yükler (StudentId)"
+Documents ||--|| Staj : "içerir"
+Documents ||--o{ Okunan : "okunur"
+Documents ||--o{ Issues : "raporlanır"
+Users .. Logs : "KullaniciAdi\n(FK yok)"
+Users .. VeriSeti : "OgrenciNo\n(FK yok, admin karşılaştırması)"
+
+note right of Users
+  Student ve Admin aynı tabloda (TPH).
+  Ayrımı Rol / Discriminator sütunu yapar.
+end note
+@enduml

@@ -428,3 +428,9 @@ FodyWeavers.xsd
 #*.lscache
 *.db
 uploads/
+
+# Yüklenen belgeler
+StajEvrakSistemi/uploads/
+# SQLite yan dosyaları
+*.db-shm
+*.db-wal

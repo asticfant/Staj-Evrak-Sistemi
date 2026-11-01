@@ -1,0 +1,116 @@
+@startuml sinif-2-dogrulama
+title Sınıf Diyagramı 2 – Belge İşleme, Okuma, Karşılaştırma ve (Final) Doğrulama
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+hide <<ref>> members
+
+' Diğer diyagramlarda detaylı gösterilen sınıflar (sadece referans)
+package "Models (detayı Diyagram 1'de)" as M {
+  class Student <<ref>>
+  class Document <<ref>>
+  class StajBilgisi <<ref>>
+  class OkunanAlan <<ref>>
+  class ValidationIssue <<ref>>
+  class VeriSetiKaydi <<ref>>
+}
+
+package "Services" {
+  class BelgeIslemeService {
+    + Isle(document : Document)
+  }
+  class ComparisonService {
+    + FormIleKarsilastir(student : Student, staj : StajBilgisi, okunanAlanlar : List<OkunanAlan>) : List<ValidationIssue>
+    + VeriSetiIleKarsilastir(okunanAlanlar : List<OkunanAlan>) : List<ValidationIssue>
+    - GirilenDeger(student : Student, staj : StajBilgisi, alanAdi : string) : string
+    - Normalize(alanAdi : string, deger : string) : string
+  }
+}
+
+package "Readers" {
+  interface IDocumentReader {
+    + Oku(dosyaYolu : string) : Dictionary<string,string>
+  }
+  class DocxReader
+  class PdfReader
+  class OcrReader <<planlanan>>
+  class Ek16Alanlari <<static>> {
+    + AdSoyad, TcKimlikNo, OgrenciNo, ...
+    + StajBaslangic, StajBitis, IsyeriAdi, ...
+  }
+  class OkuyucuSecici {
+    + Sec(tur : DosyaTuru) : IDocumentReader
+  }
+}
+
+package "Validators (Final – Bölüm 6)" {
+  interface IFieldValidator <<planlanan>> {
+    + Validate(deger : string) : string
+  }
+  class TcKimlikValidator <<planlanan>>
+  class YabanciKimlikValidator <<planlanan>>
+  class TelefonValidator <<planlanan>>
+  class EmailValidator <<planlanan>>
+  class AdresValidator <<planlanan>>
+  class ZorunluAlanValidator <<planlanan>>
+  class GoogleFormUrlValidator <<planlanan>>
+  class KimlikValidatorSecici <<planlanan>> {
+    + Sec(student : Student) : IFieldValidator
+  }
+
+  interface IBelgeKurali <<planlanan>> {
+    + Kontrol(staj : StajBilgisi, student : Student) : List<ValidationIssue>
+  }
+  class TeslimTarihiKurali <<planlanan>>
+  class StajGunuKurali <<planlanan>>
+  class OgretimYiliKurali <<planlanan>>
+  class MuhendisSayisiKurali <<planlanan>>
+}
+
+IDocumentReader <|.. DocxReader
+IDocumentReader <|.. PdfReader
+IDocumentReader <|.. OcrReader
+OkuyucuSecici ..> IDocumentReader
+
+IFieldValidator <|.. TcKimlikValidator
+IFieldValidator <|.. YabanciKimlikValidator
+IFieldValidator <|.. TelefonValidator
+IFieldValidator <|.. EmailValidator
+IFieldValidator <|.. AdresValidator
+IFieldValidator <|.. ZorunluAlanValidator
+IFieldValidator <|.. GoogleFormUrlValidator
+KimlikValidatorSecici ..> IFieldValidator
+
+IBelgeKurali <|.. TeslimTarihiKurali
+IBelgeKurali <|.. StajGunuKurali
+IBelgeKurali <|.. OgretimYiliKurali
+IBelgeKurali <|.. MuhendisSayisiKurali
+
+BelgeIslemeService ..> Document
+BelgeIslemeService ..> OkuyucuSecici
+BelgeIslemeService ..> ComparisonService
+BelgeIslemeService ..> OkunanAlan
+BelgeIslemeService ..> ValidationIssue
+BelgeIslemeService ..> IFieldValidator : final
+BelgeIslemeService ..> KimlikValidatorSecici : final
+BelgeIslemeService ..> IBelgeKurali : final
+
+ComparisonService ..> Student
+ComparisonService ..> StajBilgisi
+ComparisonService ..> VeriSetiKaydi
+ComparisonService ..> ValidationIssue
+ComparisonService ..> Ek16Alanlari : alan adları
+DocxReader ..> Ek16Alanlari
+
+note bottom of PdfReader
+  Vizede metin tabanlı PDF (PdfPig).
+  Taranmış PDF / JPEG / PNG → OcrReader (final).
+end note
+
+note top of ComparisonService
+  FormIleKarsilastir → öğrenci tarafı ("teslime hazır mı?")
+  VeriSetiIleKarsilastir → admin tarafı (Excel veri seti)
+  Normalize: boşluk, tr-TR büyük harf,
+  sadece rakam (TC/telefon), tarih biçimi
+end note
+@enduml

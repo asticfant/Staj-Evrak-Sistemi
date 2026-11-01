@@ -1,0 +1,76 @@
+@startuml sinif-5-controllerlar
+title Sınıf Diyagramı 5 – Controller'lar ve Yetkilendirme
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Controllers" {
+  class AccountController {
+    + Kayit(form : KayitFormu)
+    + Giris(form : GirisFormu)
+    + Cikis()
+    + ErisimEngellendi()
+  }
+  class StudentController <<Authorize: Student>> {
+    + Profil()
+    + ProfilKaydet(form : ProfilFormu)
+    + EvrakYukle(dosya, staj : StajBilgisi)
+    + StajBilgisiDuzelt(documentId : int, staj : StajBilgisi)
+    + Belgelerim()
+    + Rapor(documentId : int)
+    + GoogleFormUrlKaydet(url : string)
+  }
+  class AdminController <<Authorize: Admin>> {
+    + Belgeler(filtre : BelgeFiltresi)
+    + Tamamlananlar()
+    + BelgeDetay(documentId : int)
+    + Tamamla(documentId : int)
+    + DurumGuncelle(documentId : int, durum : DocumentDurum)
+    + BelgeSil(documentId : int)
+    + VeriSetiYukle(dosya)
+    + Ek17Olustur(documentId : int)
+  }
+}
+
+hide <<ref>> members
+package "Formlar" {
+  class GirisFormu
+  class KayitFormu
+}
+hide GirisFormu members
+hide KayitFormu members
+
+package "Services (detayı Diyagram 3 ve 4'te)" {
+  class AuthService <<ref>>
+  class ProfilService <<ref>>
+  class DocumentService <<ref>>
+  class BelgeSorguService <<ref>>
+  class DatasetImportService <<ref>>
+  class Ek17Generator <<planlanan>> <<ref>>
+}
+
+AccountController ..> AuthService
+AccountController ..> GirisFormu
+AccountController ..> KayitFormu
+StudentController ..> AuthService : AktifKullaniciGetir()
+AdminController ..> AuthService : AktifKullaniciGetir()
+StudentController ..> ProfilService
+StudentController ..> DocumentService
+StudentController ..> BelgeSorguService
+AdminController ..> BelgeSorguService
+AdminController ..> DocumentService
+AdminController ..> DatasetImportService
+AdminController ..> Ek17Generator
+
+note bottom of AccountController
+  Giriş yapmamış kullanıcı → Giris()
+  Yanlış rol → ErisimEngellendi() (403)
+  Form eylemlerinin GET (sayfayı aç) ve
+  POST (formu gönder) iki sürümü vardır.
+end note
+
+note bottom of StudentController
+  EvrakYukle: dosya + staj formu tek sayfada.
+  Profil tamamlanmadan belge yüklenemez.
+  GoogleFormUrlKaydet: final.
+end note
+@enduml
