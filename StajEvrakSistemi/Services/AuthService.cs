@@ -21,69 +21,162 @@ public class AuthService
         _http = http;
     }
 
-    public Task<IslemSonucu> KayitOl(string kullaniciAdi, string email, string sifre, string sifreTekrar)
+    /// <summary>Öğrencinin kendi hesabını oluşturması. Şifre hash'lenerek saklanır.</summary>
+    public async Task<IslemSonucu> KayitOl(string kullaniciAdi, string email, string sifre, string sifreTekrar)
     {
-        // TODO (Mevlüt):
-        // 1) sifre != sifreTekrar ise IslemSonucu.Hata("Şifreler eşleşmiyor")
-        // 2) KullaniciVarMi(kullaniciAdi, email) ise IslemSonucu.Hata("Bu kullanıcı adı veya e-posta kullanılıyor")
-        // 3) var ogrenci = new Student(kullaniciAdi, email, _hasher.Hashle(sifre));
-        // 4) _db.Students.Add(ogrenci); await _db.SaveChangesAsync();
-        // 5) IslemSonucu.Ok("Kayıt başarılı")
-        throw new NotImplementedException();
+        // 1) Şifreler aynı mı?
+        if (sifre != sifreTekrar)
+        {
+            return IslemSonucu.Hata("Şifreler eşleşmiyor");
+        }
+
+        // 2) Kullanıcı adı veya e-posta daha önce alınmış mı?
+        if (KullaniciVarMi(kullaniciAdi, email))
+        {
+            return IslemSonucu.Hata("Bu kullanıcı adı veya e-posta kullanılıyor");
+        }
+
+        // 3) Yeni öğrenci (şifre düz değil, hash olarak)
+        var ogrenci = new Student(kullaniciAdi, email, _hasher.Hashle(sifre));
+
+        // 4) Veritabanına kaydet
+        _db.Students.Add(ogrenci);
+        await _db.SaveChangesAsync();
+
+        // 5) Başarılı
+        return IslemSonucu.Ok("Kayıt başarılı");
     }
 
-    public Task<GirisSonucu> GirisYap(string kullaniciAdiVeyaEmail, string sifre)
+    /// <summary>
+    /// Kullanıcı adı veya e-posta + şifre ile giriş.
+    /// Her deneme loglanır; 5 hatalı denemede hesap 15 dakika kilitlenir.
+    /// </summary>
+    public async Task<GirisSonucu> GirisYap(string kullaniciAdiVeyaEmail, string sifre)
     {
-        // TODO (Mevlüt):
-        // 1) var user = KullaniciBul(kullaniciAdiVeyaEmail);
-        //    null ise -> LogKaydet(girdi, false), "Kullanıcı adı veya şifre hatalı"
-        // 2) user.KilitliMi() ise -> LogKaydet(..., false), "Hesabınız 15 dakika kilitli"
-        // 3) _hasher.Dogrula(sifre, user.SifreHash) yanlışsa
-        //    -> user.HataliGirisKaydet(); LogKaydet(..., false); SaveChanges; hata mesajı
-        // 4) Doğruysa -> user.SayaciSifirla(); LogKaydet(..., true); SaveChanges;
-        //    await _http.HttpContext!.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, ClaimsOlustur(user));
-        // 5) GirisSonucu { Basarili = true, Kullanici = user }
-        throw new NotImplementedException();
+        // 1) Kullanıcı var mı?
+        var user = KullaniciBul(kullaniciAdiVeyaEmail);
+        if (user == null)
+        {
+            LogKaydet(kullaniciAdiVeyaEmail, false);
+            await _db.SaveChangesAsync();
+            return new GirisSonucu
+            {
+                Basarili = false,
+                Mesaj = "Kullanıcı adı veya şifre hatalı"
+            };
+        }
+
+        // 2) Hesap kilitli mi? (Kilitliyse şifreye hiç bakılmaz)
+        if (user.KilitliMi())
+        {
+            LogKaydet(user.KullaniciAdi, false);
+            await _db.SaveChangesAsync();
+            return new GirisSonucu
+            {
+                Basarili = false,
+                Mesaj = "Hesabınız 15 dakika kilitli"
+            };
+        }
+
+        // 3) Şifre yanlış mı?
+        if (!_hasher.Dogrula(sifre, user.SifreHash))
+        {
+            user.HataliGirisKaydet();
+            LogKaydet(user.KullaniciAdi, false);
+            await _db.SaveChangesAsync();
+            return new GirisSonucu
+            {
+                Basarili = false,
+                Mesaj = user.KilitliMi()
+                    ? "5 hatalı deneme yaptınız, hesabınız 15 dakika kilitlendi"
+                    : "Kullanıcı adı veya şifre hatalı"
+            };
+        }
+
+        // 4) Şifre doğru: sayacı sıfırla, logla, kaydet, cookie ile giriş yap
+        user.SayaciSifirla();
+        LogKaydet(user.KullaniciAdi, true);
+        await _db.SaveChangesAsync();
+
+        await _http.HttpContext!.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            ClaimsOlustur(user));
+
+        // 5) Başarılı
+        return new GirisSonucu
+        {
+            Basarili = true,
+            Mesaj = "Giriş başarılı",
+            Kullanici = user
+        };
     }
 
-    public Task CikisYap()
+    /// <summary>Cookie'yi siler; oturum sona erer.</summary>
+    public async Task CikisYap()
     {
-        // TODO (Mevlüt): await _http.HttpContext!.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        throw new NotImplementedException();
+        await _http.HttpContext!.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 
     /// <summary>Cookie'deki kullanıcı Id'sinden giriş yapmış kullanıcıyı getirir (controller'lar kullanır).</summary>
-    public Task<User?> AktifKullaniciGetir()
+    public async Task<User?> AktifKullaniciGetir()
     {
-        // TODO (Mevlüt):
-        // var idText = _http.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        // int.TryParse ile çevir, başarısızsa null
-        // return await _db.Users.FindAsync(id);
-        throw new NotImplementedException();
+        var idText = _http.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(idText, out var id))
+        {
+            return null;
+        }
+
+        return await _db.Users.FindAsync(id);
     }
 
+    /// <summary>Kullanıcı adı veya e-posta daha önce kullanılmış mı?</summary>
     private bool KullaniciVarMi(string kullaniciAdi, string email)
     {
-        // TODO: _db.Users.Any(u => u.KullaniciAdi == kullaniciAdi || u.Email == email)
-        throw new NotImplementedException();
+        return _db.Users.Any(u => u.KullaniciAdi == kullaniciAdi || u.Email == email);
     }
 
+    /// <summary>Girdide '@' varsa e-postaya, yoksa kullanıcı adına göre arar.</summary>
     private User? KullaniciBul(string girdi)
     {
-        // TODO: girdi '@' içeriyorsa Email'e, içermiyorsa KullaniciAdi'na göre ara
-        throw new NotImplementedException();
+        if (girdi.Contains('@'))
+        {
+            return _db.Users.FirstOrDefault(u => u.Email == girdi);
+        }
+        else
+        {
+            return _db.Users.FirstOrDefault(u => u.KullaniciAdi == girdi);
+        }
     }
 
+    /// <summary>
+    /// Her giriş denemesi için log satırı hazırlar.
+    /// Kaydetmez; SaveChangesAsync'i çağıran metot kaydeder.
+    /// </summary>
     private void LogKaydet(string kullaniciAdi, bool basariliMi)
     {
-        // TODO: _db.LoginLogs.Add(new LoginLog { KullaniciAdi = kullaniciAdi, BasariliMi = basariliMi });
-        throw new NotImplementedException();
+        _db.LoginLogs.Add(new LoginLog
+        {
+            KullaniciAdi = kullaniciAdi,
+            BasariliMi = basariliMi,
+            Tarih = DateTime.UtcNow
+        });
     }
 
+    /// <summary>
+    /// Cookie'ye yazılacak kimliği hazırlar (Id, kullanıcı adı, rol).
+    /// Rol bilgisi [Authorize(Roles = ...)] kontrollerinde kullanılır.
+    /// </summary>
     private ClaimsPrincipal ClaimsOlustur(User user)
     {
-        // TODO: NameIdentifier = user.Id, Name = user.KullaniciAdi, Role = user.Rol.ToString()
-        //       new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)
-        throw new NotImplementedException();
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.KullaniciAdi),
+            new Claim(ClaimTypes.Role, user.Rol.ToString())
+        };
+
+        var kimlik = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        return new ClaimsPrincipal(kimlik);
     }
 }
