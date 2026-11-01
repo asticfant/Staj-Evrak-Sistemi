@@ -1,0 +1,92 @@
+@startuml sinif-3-giris-veriseti
+title Sınıf Diyagramı 3 – Kayıt, Giriş, Profil ve Veri Seti Aktarımı
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide <<ref>> members
+
+package "Models (detayı Diyagram 1'de)" {
+  class User <<ref>>
+  class Student <<ref>>
+  class Admin <<ref>>
+  class LoginLog <<ref>>
+  class VeriSetiKaydi <<ref>>
+}
+
+package "Services" {
+  class AuthService {
+    + KayitOl(kullaniciAdi : string, email : string, sifre : string, sifreTekrar : string) : IslemSonucu
+    + GirisYap(kullaniciAdiVeyaEmail : string, sifre : string) : GirisSonucu
+    + CikisYap()
+    + AktifKullaniciGetir() : User
+    - KullaniciVarMi(kullaniciAdi : string, email : string) : bool
+    - KullaniciBul(girdi : string) : User
+    - LogKaydet(kullaniciAdi : string, basariliMi : bool)
+    - ClaimsOlustur(user : User) : ClaimsPrincipal
+  }
+  class ProfilService {
+    + ProfilGetir(studentId : int) : Student
+    + ProfilGuncelle(studentId : int, form : ProfilFormu) : IslemSonucu
+  }
+  class DatasetImportService {
+    + ExceldenAktar(dosya) : ImportSonucu
+    - KayitVarMi(ogrenciNo : string) : bool
+    - SatirdanKayitOlustur(satir) : VeriSetiKaydi
+  }
+  interface IPasswordHasher {
+    + Hashle(sifre : string) : string
+    + Dogrula(sifre : string, hash : string) : bool
+  }
+  class BCryptPasswordHasher
+  class DbSeeder {
+    + AdminOlustur()
+  }
+}
+
+package "Sonuc / Form Nesneleri" {
+  class IslemSonucu {
+    + Basarili : bool
+    + Mesaj : string
+  }
+  class GirisSonucu {
+    + Basarili : bool
+    + Mesaj : string
+    + Kullanici : User
+  }
+  class ProfilFormu {
+    + AdSoyad : string
+    + TcKimlikNo : string
+    + Uyruk : string
+    + OgrenciNo : string
+    + DogumTarihi : DateTime
+    + Adres : string
+    + Bolum : string
+    + Telefon : string
+    + SaglikYardimiStatusu : string
+    + OncekiStajGunSayisi : int
+  }
+  class ImportSonucu {
+    + EklenenSayisi : int
+    + AtlananSayisi : int
+    + Hatalar : List<string>
+  }
+}
+
+IPasswordHasher <|.. BCryptPasswordHasher
+
+AuthService ..> IPasswordHasher
+AuthService ..> IslemSonucu
+AuthService ..> GirisSonucu
+AuthService ..> User
+AuthService ..> Student : kayıtta oluşturur
+AuthService ..> LoginLog
+
+ProfilService ..> Student
+ProfilService ..> ProfilFormu
+ProfilService ..> IslemSonucu
+
+DatasetImportService ..> VeriSetiKaydi
+DatasetImportService ..> ImportSonucu
+
+DbSeeder ..> IPasswordHasher
+DbSeeder ..> Admin
+@enduml

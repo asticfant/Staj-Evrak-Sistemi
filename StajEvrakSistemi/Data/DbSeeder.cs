@@ -1,24 +1,29 @@
-﻿using Microsoft.EntityFrameworkCore;
 using StajEvrakSistemi.Models;
+using StajEvrakSistemi.Services;
 
 namespace StajEvrakSistemi.Data;
 
-public static class DbSeeder
+/// <summary>İlk açılışta varsayılan admin hesabını oluşturur.</summary>
+public class DbSeeder
 {
-    public static void Seed(AppDbContext db)
-    {
-        // Eksik tabloları oluşturur; arkadaşların elle komut yazmasına gerek kalmaz
-        db.Database.Migrate();
+    private readonly AppDbContext _db;
+    private readonly IPasswordHasher _hasher;
 
-        if (!db.Admins.Any())
+    public DbSeeder(AppDbContext db, IPasswordHasher hasher)
+    {
+        _db = db;
+        _hasher = hasher;
+    }
+
+    public void AdminOlustur()
+    {
+        if (_db.Admins.Any())
         {
-            db.Admins.Add(new Admin
-            {
-                KullaniciAdi = "admin",
-                Email = "admin@staj.local",
-                SifreHash = BCrypt.Net.BCrypt.HashPassword("Admin123!")
-            });
-            db.SaveChanges();
+            return;
         }
+
+        var admin = new Admin("admin", "admin@stajevrak.local", _hasher.Hashle("Admin123!"));
+        _db.Admins.Add(admin);
+        _db.SaveChanges();
     }
 }

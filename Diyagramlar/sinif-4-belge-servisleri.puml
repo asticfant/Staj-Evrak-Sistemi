@@ -1,0 +1,79 @@
+@startuml sinif-4-belge-servisleri
+title Sınıf Diyagramı 4 – Belge Servisleri, Sorgular ve Final Çıktıları
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide <<ref>> members
+
+package "Models (detayı Diyagram 1'de)" {
+  class Document <<ref>>
+  class StajBilgisi <<ref>>
+}
+class BelgeIslemeService <<ref>>
+class ComparisonService <<ref>>
+
+package "Services" {
+  class DocumentService {
+    + BelgeYukle(dosya, staj : StajBilgisi, student : Student) : YuklemeSonucu
+    + StajBilgisiDuzelt(documentId : int, staj : StajBilgisi, student : Student) : YuklemeSonucu
+    + Tamamla(documentId : int, yapan : Admin)
+    + DurumGuncelle(documentId : int, yeniDurum : DocumentDurum, yapan : User)
+    + Sil(documentId : int, yapan : User)
+    - UzantiGecerliMi(dosyaAdi : string) : bool
+    - ImzaGecerliMi(dosya) : bool
+    - BoyutGecerliMi(dosya) : bool
+  }
+  class BelgeSorguService {
+    + Listele(filtre : BelgeFiltresi) : List<Document>
+    + TamamlananlariListele() : List<Document>
+    + OgrencininBelgeleri(studentId : int) : List<Document>
+    + DetayGetir(documentId : int) : BelgeDetay
+  }
+  class Ek17Generator <<planlanan>> {
+    + Olustur(document : Document) : string
+  }
+  interface IGoogleFormService <<planlanan>> {
+    + Gonder(url : string, alanlar : List<OkunanAlan>)
+  }
+}
+
+package "Sonuc Nesneleri" {
+  class YuklemeSonucu {
+    + Basarili : bool
+    + Mesaj : string
+    + Belge : Document
+  }
+  class BelgeFiltresi {
+    + Durum : DocumentDurum?
+    + OgrenciNo : string
+    + Bolum : string
+    + BaslangicTarihi : DateTime?
+    + BitisTarihi : DateTime?
+  }
+  class BelgeDetay {
+    + Belge : Document
+    + StajBilgisi : StajBilgisi
+    + OkunanAlanlar : List<OkunanAlan>
+    + Hatalar : List<ValidationIssue>
+    + VeriSetiFarklari : List<ValidationIssue>
+  }
+}
+
+DocumentService ..> YuklemeSonucu
+DocumentService ..> BelgeIslemeService : yükleme / düzeltme sonrası Isle()
+DocumentService ..> IGoogleFormService : Tamamla() sonrası
+DocumentService ..> Document
+DocumentService ..> StajBilgisi
+
+BelgeSorguService ..> BelgeFiltresi
+BelgeSorguService ..> BelgeDetay
+BelgeSorguService ..> Document
+BelgeSorguService ..> ComparisonService : admin detayı için\nVeriSetiIleKarsilastir()
+
+Ek17Generator ..> Document
+
+note bottom of DocumentService
+  Vize kontrolleri (hocanın cevabı):
+  sadece dosya formatı, uzantı,
+  dosya imzası ve boyut.
+end note
+@enduml

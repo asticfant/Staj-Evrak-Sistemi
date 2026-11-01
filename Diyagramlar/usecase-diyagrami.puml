@@ -1,0 +1,43 @@
+@startuml usecase-diyagrami
+title Use Case Diyagramı
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Öğrenci" as S
+actor "Admin" as A
+
+rectangle "Staj Evrak Doğrulama Sistemi" {
+  usecase "Kayıt ol" as UC0
+  usecase "Giriş yap" as UC1
+  usecase "Profil bilgilerini gir" as UC2
+  usecase "Ek-16 yükle\n(dosya + staj formu)" as UC3
+  usecase "Format / uzantı kontrolü" as UC4
+  usecase "Belge ile formu karşılaştır" as UC5
+  usecase "Rapor görüntüle" as UC6
+  usecase "Staj bilgisini düzelt" as UC7
+  usecase "Veri seti yükle" as UC8
+  usecase "Belgeleri listele / filtrele" as UC9
+  usecase "Belge detayı ve veri seti\nkarşılaştırmasını incele" as UC10
+  usecase "Belgeyi tamamla" as UC11
+  usecase "Belgeyi güncelle / sil" as UC12
+  usecase "Ek-17 oluştur\n(final)" as UC13
+}
+
+S --> UC0
+S --> UC1
+S --> UC2
+S --> UC3
+S --> UC6
+S --> UC7
+A --> UC1
+A --> UC8
+A --> UC9
+A --> UC10
+A --> UC11
+A --> UC12
+A --> UC13
+
+UC3 ..> UC4 : <<include>>
+UC3 ..> UC5 : <<include>>
+UC7 ..> UC5 : <<include>>
+@enduml

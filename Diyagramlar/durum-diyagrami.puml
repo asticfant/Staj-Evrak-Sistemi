@@ -1,0 +1,23 @@
+@startuml durum-diyagrami
+title Belge Statü Akışı (Bölüm 5)
+
+[*] --> Yuklendi : Öğrenci dosya + staj formu gönderir\n(format/uzantı kontrolü geçti)
+Yuklendi --> Inceleniyor : Sistem: IncelemeyeAl()
+Inceleniyor --> HataliEksik : Sistem: uyuşmazlık bulundu\nHataliOlarakIsaretle()
+Inceleniyor --> Onaylandi : Sistem: uyuşmazlık yok\nOnayla()
+HataliEksik --> Inceleniyor : Öğrenci formu düzeltir\nYenidenKontrolEt()
+HataliEksik --> [*] : Öğrenci belgeyi düzeltip\nyeniden yükler (yeni kayıt)
+Onaylandi --> Tamamlandi : Admin: Tamamla()
+
+note right of Inceleniyor
+  Belge türü vizede okunamıyorsa
+  (resim / taranmış PDF), belge
+  burada kalır ve admin elle inceler.
+end note
+
+note right of Tamamlandi
+  Öğrenci değiştiremez / silemez.
+  Sadece Admin güncelleyebilir veya silebilir.
+  (Planlanan: Google Form gönderimi, Ek-17)
+end note
+@enduml
