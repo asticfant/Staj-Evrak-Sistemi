@@ -1,57 +1,83 @@
 ﻿@{
-    ViewData["Title"] = "Ana Sayfa";
+    ViewData["Title"] = "Ana sayfa";
     var girisYapti = User.Identity?.IsAuthenticated == true;
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8 text-center py-4">
-        <h1 class="mb-3">Staj Evrak Doğrulama Sistemi</h1>
-        <p class="lead text-muted">
-            Ek-16 staj başvuru belgeni yükle; sistem belgedeki bilgileri okuyup
-            girdiğin bilgilerle karşılaştırsın ve eksikleri raporlasın.
-        </p>
+<section class="giris-alani">
+    <div class="row g-5 align-items-center">
+        <div class="col-lg-6">
+            <h1>Ek-16 belgeni teslim etmeden önce kontrol et</h1>
+            <p class="aciklama">
+                Belgeni yükle, staj bilgilerini gir. Sistem belgedeki bilgileri okuyup girdiklerinle
+                karşılaştırır; uyuşmayan, boş kalan ya da kaşesi eksik alanları tek tek gösterir.
+            </p>
 
-        @if (!girisYapti)
-        {
-            <div class="d-flex gap-2 justify-content-center mt-4">
-                <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Giris">Giriş Yap</a>
-                <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Kayit">Kayıt Ol</a>
-            </div>
-        }
-        else if (User.IsInRole(nameof(UserRole.Admin)))
-        {
-            <a class="btn btn-primary btn-lg mt-4" asp-controller="Admin" asp-action="Belgeler">Admin Paneline Git</a>
-        }
-        else
-        {
-            <a class="btn btn-primary btn-lg mt-4" asp-controller="Student" asp-action="Belgelerim">Belgelerime Git</a>
-        }
-    </div>
-</div>
+            @if (!girisYapti)
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Kayit">Hesap oluştur</a>
+                    <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Giris">Giriş yap</a>
+                </div>
+            }
+            else if (User.IsInRole(nameof(UserRole.Admin)))
+            {
+                <a class="btn btn-primary btn-lg" asp-controller="Admin" asp-action="Belgeler">Belgeleri incele</a>
+            }
+            else
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-primary btn-lg" asp-controller="Student" asp-action="EvrakYukle">Evrak yükle</a>
+                    <a class="btn btn-outline-primary btn-lg" asp-controller="Student" asp-action="Belgelerim">Belgelerim</a>
+                </div>
+            }
+        </div>
 
-<div class="row g-3 mt-2">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">1. Profilini doldur</h5>
-                <p class="card-text text-muted">Kişisel bilgilerini bir kez gir; her belgede tekrar yazmana gerek yok.</p>
+        @* Sistemin ne yaptığını gösteren örnek rapor (sabit içerik, gerçek veri değil) *@
+        <div class="col-lg-6">
+            <div class="ornek-belge" aria-label="Örnek kontrol sonucu">
+                <div class="ornek-belge-ust">
+                    <strong>Ek-16 Staj Başvuru Formu</strong>
+                    <span>Örnek kontrol</span>
+                </div>
+                <dl class="mb-5">
+                    <div class="alan-satiri">
+                        <dt>Ad soyad</dt>
+                        <dd>Ayşe Demir</dd>
+                        <i class="bi bi-check-circle-fill" title="Uyuşuyor"></i>
+                    </div>
+                    <div class="alan-satiri">
+                        <dt>Öğrenci no</dt>
+                        <dd>210201002</dd>
+                        <i class="bi bi-check-circle-fill" title="Uyuşuyor"></i>
+                    </div>
+                    <div class="alan-satiri">
+                        <dt>Staj başlangıcı</dt>
+                        <dd>02.03.2026 <span class="not">Formda 03.02.2026 girildi</span></dd>
+                        <i class="bi bi-x-circle-fill" title="Uyuşmuyor"></i>
+                    </div>
+                    <div class="alan-satiri bos">
+                        <dt>İşveren kaşesi</dt>
+                        <dd>Boş</dd>
+                        <i class="bi bi-exclamation-circle-fill" title="Eksik"></i>
+                    </div>
+                </dl>
+                <span class="muhur muhur-bas">Hatalı / Eksik</span>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">2. Ek-16'yı yükle</h5>
-                <p class="card-text text-muted">Word, PDF, JPEG veya PNG; en fazla 10 MB. Staj bilgilerini aynı sayfada gir.</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">3. Raporu incele</h5>
-                <p class="card-text text-muted">Uyuşmayan veya eksik alanları gör, düzelt ve belgeni onaya hazırla.</p>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
+
+<ol class="adimlar">
+    <li>
+        <h3>Profilini doldur</h3>
+        <p>Kimlik, iletişim ve bölüm bilgilerini bir kez gir; her belgede tekrar yazmazsın.</p>
+    </li>
+    <li>
+        <h3>Belgeni ve staj bilgilerini yükle</h3>
+        <p>Word, PDF, JPEG veya PNG, en fazla 10 MB. Staj tarihlerini ve işyeri bilgilerini aynı sayfada gir.</p>
+    </li>
+    <li>
+        <h3>Raporu incele, düzelt</h3>
+        <p>Uyuşmayan alanları girdiğin ve belgede okunan değerle yan yana gör; düzeltip tekrar kontrol ettir.</p>
+    </li>
+</ol>

@@ -1,21 +1,21 @@
 @{
-    ViewData["Title"] = "Erişim Engellendi";
+    ViewData["Title"] = "Erişim engellendi";
     // Controller bu sayfayı 403 (Forbidden) durum koduyla döndürür.
     // Buraya, giriş yapmış ama sayfa için yetkisi olmayan kullanıcı gelir
     // (örn. öğrenci /Admin/Belgeler adresini elle yazarsa).
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-7 text-center py-5">
-        <p class="display-1 fw-bold text-danger mb-0">403</p>
-        <h2 class="h4 mb-3">Bu sayfaya erişim yetkiniz yok</h2>
-        <p class="text-muted mb-4">
-            Açmaya çalıştığınız sayfa başka bir kullanıcı rolüne ait.
-            Farklı bir hesapla giriş yapmanız gerekiyorsa önce çıkış yapın.
+<div class="dar-sayfa">
+    <div class="kagit">
+        <p class="hata-kodu mb-2">403</p>
+        <h1 class="h2">Bu sayfa senin hesabına kapalı</h1>
+        <p class="text-secondary">
+            Açmaya çalıştığın sayfa başka bir kullanıcı rolüne ait. Farklı bir hesapla
+            girmen gerekiyorsa önce çıkış yap, sonra o hesapla giriş yap.
         </p>
-        <div class="d-flex gap-2 justify-content-center">
-            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
-            <a class="btn btn-outline-primary" asp-controller="Account" asp-action="Giris">Giriş Sayfası</a>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
+            <a class="btn btn-outline-primary" asp-controller="Account" asp-action="Giris">Giriş sayfası</a>
         </div>
     </div>
 </div>

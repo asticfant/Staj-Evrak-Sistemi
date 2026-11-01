@@ -1,31 +1,378 @@
-html {
-  font-size: 14px;
+/* =====================================================================
+   Staj Evrak Sistemi – site tasarımı
+   Bootstrap 5.3'ün üstüne yazılır: renkler ve yazı tipleri Bootstrap'in
+   kendi CSS değişkenleri (--bs-...) değiştirilerek ayarlanır, böylece
+   View'larda standart Bootstrap sınıfları (btn, form-control, table...) aynen kullanılır.
+
+   Fikir: resmi bir form ve üstüne basılan mühür.
+   - Sayfalar beyaz "kâğıt" panellerde, ince form çizgileriyle
+   - Ana renk: resmi mühür mürekkebi moru
+   - Belge durumu mühür gibi gösterilir
+   ===================================================================== */
+
+/* ---------- 1. Renk ve yazı tipi değişkenleri ---------- */
+:root {
+  --murekkep: #1F2B4D;        /* koyu lacivert: metin, üst bar */
+  --murekkep-soluk: #5B6475;  /* ikincil metin */
+  --zemin: #EEF1F6;           /* sayfa arka planı */
+  --kagit: #FFFFFF;           /* paneller */
+  --cizgi: #CDD4E0;           /* form çizgileri, kenarlıklar */
+  --cizgi-acik: #E4E8EF;
+  --muhur: #4A3AB8;           /* ana renk: mühür mürekkebi */
+  --muhur-koyu: #3A2D96;
+  --muhur-acik: #ECE9FA;
+
+  /* Durum renkleri (anlamlarına göre) */
+  --durum-yuklendi: #5B6475;
+  --durum-inceleniyor: #2457C5;
+  --durum-hata: #B3261E;
+  --durum-onay: #1E7A4C;
+  --durum-tamam: #1F2B4D;
+  --durum-uyari: #8A5A00;
+
+  --yazi-govde: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --yazi-baslik: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+
+  /* Bootstrap'in kendi değişkenlerini bizim renklere bağla */
+  --bs-body-font-family: var(--yazi-govde);
+  --bs-body-color: var(--murekkep);
+  --bs-body-bg: var(--zemin);
+  --bs-secondary-color: var(--murekkep-soluk);
+  --bs-border-color: var(--cizgi);
+  --bs-border-radius: .375rem;
+  --bs-primary: var(--muhur);
+  --bs-primary-rgb: 74, 58, 184;
+  --bs-link-color: var(--muhur);
+  --bs-link-color-rgb: 74, 58, 184;
+  --bs-link-hover-color: var(--muhur-koyu);
+  --bs-link-hover-color-rgb: 58, 45, 150;
+  --bs-heading-color: var(--murekkep);
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
+/* ---------- 2. Genel ---------- */
+html { font-size: 15px; }
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, .baslik-serif {
+  font-family: var(--yazi-baslik);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 2rem; line-height: 1.2; }
+h2 { font-size: 1.5rem; line-height: 1.25; }
+h3, h4, h5 { font-weight: 600; }
+
+/* Klavye ile gezenler için görünür odak çerçevesi */
+:focus-visible {
+  outline: 3px solid rgba(74, 58, 184, .45);
+  outline-offset: 2px;
+}
+
+/* ---------- 3. Üst bar ve menü ---------- */
+.ust-bar {
+  background: var(--murekkep);
+  border-bottom: 3px solid var(--muhur);
+}
+.ust-bar .navbar { padding-top: .6rem; padding-bottom: .6rem; }
+
+.marka {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+.marka:hover { color: #fff; }
+
+/* Küçük mühür işareti */
+.marka-muhur {
+  display: inline-grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 2px solid #B9B1F0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--murekkep), inset 0 0 0 3px #B9B1F0;
+  color: #fff;
+  font-family: var(--yazi-baslik);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.ust-bar .nav-link {
+  color: rgba(255, 255, 255, .78);
+  font-weight: 500;
+  padding: .5rem .85rem !important;
+  border-radius: .375rem;
+}
+.ust-bar .nav-link:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+.ust-bar .nav-link.active { color: #fff; background: rgba(255, 255, 255, .14); }
+.ust-bar .nav-link .bi { margin-right: .35rem; opacity: .85; }
+
+.kullanici {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: rgba(255, 255, 255, .9);
+  font-size: .925rem;
+}
+.kullanici-rol {
+  font-size: .75rem;
+  padding: .1rem .5rem;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, .8);
+}
+.btn-cikis {
+  color: rgba(255, 255, 255, .85);
+  border: 1px solid rgba(255, 255, 255, .35);
+  font-size: .875rem;
+  padding: .3rem .75rem;
+}
+.btn-cikis:hover { color: var(--murekkep); background: #fff; border-color: #fff; }
+
+/* ---------- 4. Sayfa yapısı ---------- */
+.sayfa { flex: 1 0 auto; padding-top: 2rem; padding-bottom: 3rem; }
+
+.sayfa-baslik { margin-bottom: 1.5rem; max-width: 46rem; }
+.sayfa-baslik h1 { margin-bottom: .35rem; }
+.sayfa-baslik p { color: var(--murekkep-soluk); margin-bottom: 0; }
+
+/* Beyaz kâğıt panel: tüm formlar ve tablolar bunun içinde */
+.kagit {
+  background: var(--kagit);
+  border: 1px solid var(--cizgi);
+  border-radius: .5rem;
+  padding: 1.75rem;
+}
+.kagit + .kagit { margin-top: 1.25rem; }
+.kagit-baslik {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--cizgi-acik);
+}
+
+/* Giriş / kayıt gibi dar sayfalar */
+.dar-sayfa { max-width: 27rem; margin: 1rem auto 0; }
+.dar-sayfa .sayfa-baslik { text-align: left; }
+
+.alt-bilgi {
+  flex-shrink: 0;
+  border-top: 1px solid var(--cizgi);
+  padding: 1.25rem 0;
+  color: var(--murekkep-soluk);
+  font-size: .875rem;
+}
+
+/* ---------- 5. Formlar ve butonlar ---------- */
+.form-label { font-weight: 500; font-size: .925rem; margin-bottom: .3rem; }
+.form-control, .form-select {
+  border-color: var(--cizgi);
+  padding: .6rem .8rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--muhur);
+  box-shadow: 0 0 0 .2rem rgba(74, 58, 184, .15);
+}
+.form-text { color: var(--murekkep-soluk); }
+
+/* Hata yokken ASP.NET hata özeti kutusunu "validation-summary-valid" sınıfıyla boş bırakır;
+   alert stili yüzünden boş kırmızı kutu görünmesin. */
+.validation-summary-valid { display: none; }
+.validation-summary-errors ul { margin: 0; padding-left: 1.1rem; }
+.field-validation-error { display: block; margin-top: .25rem; }
+
+.btn { font-weight: 500; padding: .55rem 1.1rem; }
+.btn-primary {
+  --bs-btn-bg: var(--muhur);
+  --bs-btn-border-color: var(--muhur);
+  --bs-btn-hover-bg: var(--muhur-koyu);
+  --bs-btn-hover-border-color: var(--muhur-koyu);
+  --bs-btn-active-bg: var(--muhur-koyu);
+  --bs-btn-active-border-color: var(--muhur-koyu);
+  --bs-btn-disabled-bg: var(--muhur);
+  --bs-btn-disabled-border-color: var(--muhur);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--muhur);
+  --bs-btn-border-color: var(--muhur);
+  --bs-btn-hover-bg: var(--muhur);
+  --bs-btn-hover-border-color: var(--muhur);
+  --bs-btn-active-bg: var(--muhur-koyu);
+  --bs-btn-active-border-color: var(--muhur-koyu);
+}
+.btn-lg { padding: .7rem 1.4rem; font-size: 1.05rem; }
+
+.alert { border-radius: .5rem; }
+.alert-info { --bs-alert-bg: var(--muhur-acik); --bs-alert-border-color: #D3CDF3; --bs-alert-color: var(--muhur-koyu); }
+
+/* ---------- 6. Tablolar (form ızgarası gibi) ---------- */
+.table { --bs-table-bg: transparent; margin-bottom: 0; }
+.table > thead th {
+  font-size: .825rem;
+  font-weight: 600;
+  color: var(--murekkep-soluk);
+  background: #F5F7FA;
+  border-bottom: 1px solid var(--cizgi);
+  white-space: nowrap;
+}
+.table > :not(caption) > * > * { padding: .75rem .9rem; border-color: var(--cizgi-acik); }
+.table-hover > tbody > tr:hover > * { --bs-table-hover-bg: #F7F6FD; }
+
+/* Boş liste mesajı */
+.bos-durum {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--murekkep-soluk);
+}
+.bos-durum .bi { font-size: 2rem; display: block; margin-bottom: .5rem; color: var(--cizgi); }
+
+/* ---------- 7. Durum rozeti (küçük) ve mühür (büyük) ---------- */
+.durum {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .2rem .6rem;
+  font-size: .8rem;
+  font-weight: 600;
+  line-height: 1.3;
+  border: 1.5px solid currentColor;
+  border-radius: .3rem;
+  white-space: nowrap;
+}
+.durum::before {
+  content: "";
+  width: .45rem;
+  height: .45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.durum-yuklendi   { color: var(--durum-yuklendi);   background: #F1F2F5; }
+.durum-inceleniyor{ color: var(--durum-inceleniyor);background: #EAF0FC; }
+.durum-hata       { color: var(--durum-hata);       background: #FBECEB; }
+.durum-onay       { color: var(--durum-onay);       background: #E7F4EC; }
+.durum-tamam      { color: #fff; background: var(--durum-tamam); border-color: var(--durum-tamam); }
+
+/* Büyük mühür: belgenin üstüne basılmış gibi */
+.muhur {
+  display: inline-block;
+  padding: .45rem 1rem;
+  font-family: var(--yazi-baslik);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--durum-hata);
+  border: 3px double currentColor;
+  border-radius: .4rem;
+  transform: rotate(-7deg);
+  opacity: .88;
+  background: rgba(255, 255, 255, .6);
+}
+.muhur-onay { color: var(--durum-onay); }
+
+/* Mühür basılma anı: sayfa açılışında tek seferlik */
+@media (prefers-reduced-motion: no-preference) {
+  .muhur-bas { animation: muhur-bas .5s cubic-bezier(.2, .9, .3, 1.2) .6s both; }
+  @keyframes muhur-bas {
+    from { transform: rotate(-7deg) scale(1.6); opacity: 0; }
+    to   { transform: rotate(-7deg) scale(1);   opacity: .88; }
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
+/* ---------- 8. Ana sayfa ---------- */
+.giris-alani { padding: 1.5rem 0 2.5rem; }
+.giris-alani h1 { font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.12; max-width: 15ch; }
+.giris-alani .aciklama { font-size: 1.125rem; color: var(--murekkep-soluk); max-width: 34rem; margin: 1rem 0 1.75rem; }
 
-html {
+/* Sağdaki örnek Ek-16 kâğıdı */
+.ornek-belge {
   position: relative;
-  min-height: 100%;
+  background: var(--kagit);
+  border: 1px solid var(--cizgi);
+  border-radius: .5rem;
+  box-shadow: 0 1px 0 var(--cizgi), 0 12px 28px -18px rgba(31, 43, 77, .35);
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+.ornek-belge-ust {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--murekkep);
+  padding-bottom: .6rem;
+  margin-bottom: .25rem;
+}
+.ornek-belge-ust strong { font-family: var(--yazi-baslik); font-size: 1.05rem; }
+.ornek-belge-ust span { font-size: .8rem; color: var(--murekkep-soluk); }
+
+.alan-satiri {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr auto;
+  gap: .75rem;
+  align-items: baseline;
+  padding: .6rem 0;
+  border-bottom: 1px dashed var(--cizgi);
+  font-size: .925rem;
+}
+.alan-satiri dt { font-weight: 500; color: var(--murekkep-soluk); }
+.alan-satiri dd { margin: 0; }
+.alan-satiri .not { display: block; font-size: .8rem; color: var(--durum-hata); }
+.alan-satiri .bi-check-circle-fill { color: var(--durum-onay); }
+.alan-satiri .bi-x-circle-fill { color: var(--durum-hata); }
+.alan-satiri .bi-exclamation-circle-fill { color: var(--durum-uyari); }
+.alan-satiri.bos dd { color: var(--murekkep-soluk); font-style: italic; }
+.ornek-belge .muhur { position: absolute; right: 1.25rem; bottom: 1.1rem; }
+
+/* Adımlar: gerçek bir sıra olduğu için numaralı */
+.adimlar {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  counter-reset: adim;
+  border-top: 1px solid var(--cizgi);
+  padding-top: 2rem;
+}
+.adimlar li { counter-increment: adim; padding-left: 3rem; position: relative; }
+.adimlar li::before {
+  content: counter(adim);
+  position: absolute;
+  left: 0;
+  top: -.15rem;
+  font-family: var(--yazi-baslik);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muhur);
+}
+.adimlar h3 { font-size: 1rem; margin-bottom: .3rem; }
+.adimlar p { color: var(--murekkep-soluk); font-size: .925rem; margin: 0; }
+
+/* ---------- 9. 403 sayfası ---------- */
+.hata-kodu {
+  font-family: var(--yazi-baslik);
+  font-size: 4.5rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--durum-hata);
 }
 
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* ---------- 10. Küçük ekranlar ---------- */
+@media (max-width: 575.98px) {
+  .kagit { padding: 1.25rem; }
+  .alan-satiri { grid-template-columns: 1fr auto; }
+  .alan-satiri dt { grid-column: 1 / -1; }
+  .kullanici { margin: .5rem 0; }
 }
