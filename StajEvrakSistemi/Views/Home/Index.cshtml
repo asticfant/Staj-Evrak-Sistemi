@@ -1,8 +1,57 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana Sayfa";
+    var girisYapti = User.Identity?.IsAuthenticated == true;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row justify-content-center">
+    <div class="col-lg-8 text-center py-4">
+        <h1 class="mb-3">Staj Evrak Doğrulama Sistemi</h1>
+        <p class="lead text-muted">
+            Ek-16 staj başvuru belgeni yükle; sistem belgedeki bilgileri okuyup
+            girdiğin bilgilerle karşılaştırsın ve eksikleri raporlasın.
+        </p>
+
+        @if (!girisYapti)
+        {
+            <div class="d-flex gap-2 justify-content-center mt-4">
+                <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Giris">Giriş Yap</a>
+                <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Kayit">Kayıt Ol</a>
+            </div>
+        }
+        else if (User.IsInRole(nameof(UserRole.Admin)))
+        {
+            <a class="btn btn-primary btn-lg mt-4" asp-controller="Admin" asp-action="Belgeler">Admin Paneline Git</a>
+        }
+        else
+        {
+            <a class="btn btn-primary btn-lg mt-4" asp-controller="Student" asp-action="Belgelerim">Belgelerime Git</a>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">1. Profilini doldur</h5>
+                <p class="card-text text-muted">Kişisel bilgilerini bir kez gir; her belgede tekrar yazmana gerek yok.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">2. Ek-16'yı yükle</h5>
+                <p class="card-text text-muted">Word, PDF, JPEG veya PNG; en fazla 10 MB. Staj bilgilerini aynı sayfada gir.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">3. Raporu incele</h5>
+                <p class="card-text text-muted">Uyuşmayan veya eksik alanları gör, düzelt ve belgeni onaya hazırla.</p>
+            </div>
+        </div>
+    </div>
 </div>

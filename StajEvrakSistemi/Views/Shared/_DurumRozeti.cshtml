@@ -1,0 +1,18 @@
+@model DocumentDurum
+@*
+    Belge durumunu renkli bir rozet olarak gösterir.
+    Kullanımı: <partial name="_DurumRozeti" model="belge.Durum" />
+    Enum adları (HataliEksik gibi) kullanıcıya okunabilir metne çevrilir.
+*@
+@{
+    var (metin, renk) = Model switch
+    {
+        DocumentDurum.Yuklendi    => ("Yüklendi", "bg-secondary"),
+        DocumentDurum.Inceleniyor => ("İnceleniyor", "bg-primary"),
+        DocumentDurum.HataliEksik => ("Hatalı / Eksik", "bg-danger"),
+        DocumentDurum.Onaylandi   => ("Onaylandı", "bg-success"),
+        DocumentDurum.Tamamlandi  => ("Tamamlandı", "bg-dark"),
+        _                         => (Model.ToString(), "bg-secondary")
+    };
+}
+<span class="badge @renk">@metin</span>

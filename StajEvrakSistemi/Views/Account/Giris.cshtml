@@ -1,0 +1,49 @@
+@model GirisFormu
+@{
+    ViewData["Title"] = "Giriş";
+
+    // returnUrl: kullanıcı giriş yapmadan korumalı bir sayfayı açmaya çalıştıysa,
+    // giriş sonrası oraya geri dönsün diye adresi saklıyoruz.
+    // İlk açılışta ViewData'dan, hatalı denemeden sonra adres çubuğundan gelir.
+    var returnUrl = ViewData["ReturnUrl"] as string ?? Context.Request.Query["returnUrl"].ToString();
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-4">Giriş Yap</h2>
+
+                <form asp-action="Giris" asp-route-returnUrl="@returnUrl" method="post" novalidate>
+                    @* "Kullanıcı adı veya şifre hatalı", "Hesabınız kilitli" gibi mesajlar burada görünür. *@
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="KullaniciAdiVeyaEmail" class="form-label">Kullanıcı adı veya e-posta</label>
+                        <input asp-for="KullaniciAdiVeyaEmail" class="form-control" autocomplete="username" autofocus />
+                        <span asp-validation-for="KullaniciAdiVeyaEmail" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Sifre" class="form-label">Şifre</label>
+                        <input asp-for="Sifre" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="Sifre" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                </form>
+
+                <p class="text-center mt-3 mb-0">
+                    Hesabın yok mu? <a asp-action="Kayit">Kayıt ol</a>
+                </p>
+                <p class="text-center text-muted small mt-2 mb-0">
+                    5 hatalı denemede hesap 15 dakika kilitlenir.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

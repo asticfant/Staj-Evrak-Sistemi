@@ -1,0 +1,12 @@
+@*
+    Controller'ların TempData["Mesaj"] ile gönderdiği bilgi mesajını gösterir
+    (örn. "Kayıt başarılı, giriş yapabilirsiniz.").
+    TempData bir kere okununca silinir; sayfa yenilenince mesaj kaybolur.
+*@
+@if (TempData["Mesaj"] is string mesaj && !string.IsNullOrWhiteSpace(mesaj))
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @mesaj
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
