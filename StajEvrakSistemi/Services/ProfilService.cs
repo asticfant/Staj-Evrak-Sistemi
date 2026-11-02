@@ -14,19 +14,53 @@ public class ProfilService
         _db = db;
     }
 
-    public Task<Student?> ProfilGetir(int studentId)
+    /// <summary>Öğrenciyi Id'sine göre getirir; yoksa null döner.</summary>
+    public async Task<Student?> ProfilGetir(int studentId)
     {
-        // TODO (Mevlüt): _db.Students.FindAsync(studentId)
-        throw new NotImplementedException();
+        return await _db.Students.FindAsync(studentId);
     }
 
-    public Task<IslemSonucu> ProfilGuncelle(int studentId, ProfilFormu form)
+    /// <summary>
+    /// Profil formundaki bilgileri öğrenciye kaydeder.
+    /// Vizede sadece zorunlu alanların boş olup olmadığı kontrol edilir;
+    /// format kontrolleri (TC, telefon...) final kapsamında.
+    /// </summary>
+    public async Task<IslemSonucu> ProfilGuncelle(int studentId, ProfilFormu form)
     {
-        // TODO (Mevlüt):
-        // 1) öğrenciyi bul, yoksa hata
-        // 2) form alanlarını öğrenciye kopyala
-        // 3) SaveChanges, IslemSonucu.Ok("Profil kaydedildi")
-        // Not: Format kontrolleri (TC, telefon...) final kapsamında, vizede sadece boş mu kontrolü yeterli.
-        throw new NotImplementedException();
+        // 1) Öğrenci var mı?
+        var ogrenci = await _db.Students.FindAsync(studentId);
+        if (ogrenci == null)
+        {
+            return IslemSonucu.Hata("Öğrenci bulunamadı");
+        }
+
+        // 2) Zorunlu alanlar boş mu? (Student.ProfilTamamMi ile aynı alanlar)
+        if (string.IsNullOrWhiteSpace(form.AdSoyad)
+            || string.IsNullOrWhiteSpace(form.TcKimlikNo)
+            || string.IsNullOrWhiteSpace(form.Uyruk)
+            || string.IsNullOrWhiteSpace(form.OgrenciNo)
+            || string.IsNullOrWhiteSpace(form.Adres)
+            || string.IsNullOrWhiteSpace(form.Bolum)
+            || string.IsNullOrWhiteSpace(form.Telefon)
+            || form.DogumTarihi == default)
+        {
+            return IslemSonucu.Hata("Lütfen tüm zorunlu alanları doldurun");
+        }
+
+        // 3) Formdaki bilgileri öğrenciye kopyala
+        ogrenci.AdSoyad = form.AdSoyad.Trim();
+        ogrenci.TcKimlikNo = form.TcKimlikNo.Trim();
+        ogrenci.Uyruk = form.Uyruk.Trim();
+        ogrenci.OgrenciNo = form.OgrenciNo.Trim();
+        ogrenci.DogumTarihi = form.DogumTarihi;
+        ogrenci.Adres = form.Adres.Trim();
+        ogrenci.Bolum = form.Bolum.Trim();
+        ogrenci.Telefon = form.Telefon.Trim();
+        ogrenci.SaglikYardimiStatusu = form.SaglikYardimiStatusu?.Trim();
+        ogrenci.OncekiStajGunSayisi = form.OncekiStajGunSayisi;
+
+        // 4) Kaydet (öğrenci zaten tabloda, EF değişiklikleri kendisi izliyor)
+        await _db.SaveChangesAsync();
+        return IslemSonucu.Ok("Profil kaydedildi");
     }
 }
