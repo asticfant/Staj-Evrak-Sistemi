@@ -32,7 +32,7 @@ namespace StajEvrakSistemi.Services
             {
                 foreach (var page in pdf.GetPages())
                 {
-                    // Sayfadaki kelimeleri alıp satır satır birleştiriyoruz
+                    // Sayfadaki kelimeleri alıp satır satır birleştiriyorus
                     var satirlar = page.GetWords()
                                        .GroupBy(w => Math.Round(w.BoundingBox.Bottom, 1))
                                        .Select(g => string.Join(" ", g.Select(w => w.Text)))
