@@ -1,0 +1,24 @@
+@model StajBilgisi
+@{
+    ViewData["Title"] = "Staj bilgilerini düzelt";
+}
+
+<p class="mb-2"><a asp-action="Rapor" asp-route-documentId="@Model.DocumentId"><i class="bi bi-arrow-left me-1"></i>Rapora dön</a></p>
+
+<header class="sayfa-baslik">
+    <h1>Staj bilgilerini düzelt</h1>
+    <p>Kaydedince belge yeniden kontrol edilir. Belge dosyası değişmez; dosyada hata varsa yeni belge yükle.</p>
+</header>
+
+<div class="kagit">
+    @* documentId adres çubuğundan (?documentId=..) gider; controller'daki
+       StajBilgisiDuzelt(int documentId, StajBilgisi staj) parametresine bağlanır. *@
+    <form asp-action="StajBilgisiDuzelt" asp-route-documentId="@Model.DocumentId" method="post">
+        <partial name="_StajFormu" model="Model" />
+
+        <div class="form-alt">
+            <a class="btn btn-outline-primary" asp-action="Rapor" asp-route-documentId="@Model.DocumentId">Vazgeç</a>
+            <button type="submit" class="btn btn-primary">Kaydet ve yeniden kontrol et</button>
+        </div>
+    </form>
+</div>

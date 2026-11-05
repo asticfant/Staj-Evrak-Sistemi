@@ -1,0 +1,64 @@
+@model List<Document>
+@{
+    ViewData["Title"] = "Belgeler";
+    // Controller önceki filtreyi ViewData["Filtre"] ile geri gönderiyor; kutular dolu kalsın.
+    var filtre = ViewData["Filtre"] as BelgeFiltresi ?? new BelgeFiltresi();
+    string Tarih(DateTime? t) => t?.ToString("yyyy-MM-dd") ?? "";
+}
+@functions {
+    static string DurumMetni(DocumentDurum d) => d switch
+    {
+        DocumentDurum.Yuklendi => "Yüklendi",
+        DocumentDurum.Inceleniyor => "İnceleniyor",
+        DocumentDurum.HataliEksik => "Hatalı / Eksik",
+        DocumentDurum.Onaylandi => "Onaylandı",
+        DocumentDurum.Tamamlandi => "Tamamlandı",
+        _ => d.ToString()
+    };
+}
+
+<header class="sayfa-baslik">
+    <h1>Belgeler</h1>
+    <p>Öğrencilerin yüklediği Ek-16 belgeleri. Bir belgeyi açıp okunan alanları, uyuşmazlıkları ve veri seti farklarını incele.</p>
+</header>
+
+<partial name="_Sekmeler" />
+
+@* Filtre formu GET: veriyi değiştirmiyor, sadece listeyi daraltıyor.
+   Böylece filtreli liste adres çubuğundan paylaşılabilir. Alan adları BelgeFiltresi ile aynı. *@
+<form asp-action="Belgeler" method="get" class="kagit mb-3 py-3">
+    <div class="filtre">
+        <div>
+            <label class="form-label" for="Durum">Durum</label>
+            <select id="Durum" name="Durum" class="form-select">
+                <option value="">Hepsi</option>
+                @foreach (var d in Enum.GetValues<DocumentDurum>())
+                {
+                    <option value="@d" selected="@(filtre.Durum == d)">@DurumMetni(d)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="OgrenciNo">Öğrenci no</label>
+            <input id="OgrenciNo" name="OgrenciNo" class="form-control" value="@filtre.OgrenciNo" inputmode="numeric" />
+        </div>
+        <div>
+            <label class="form-label" for="Bolum">Bölüm</label>
+            <input id="Bolum" name="Bolum" class="form-control" value="@filtre.Bolum" />
+        </div>
+        <div>
+            <label class="form-label" for="BaslangicTarihi">Yüklenme (başlangıç)</label>
+            <input id="BaslangicTarihi" name="BaslangicTarihi" type="date" class="form-control" value="@Tarih(filtre.BaslangicTarihi)" />
+        </div>
+        <div>
+            <label class="form-label" for="BitisTarihi">Yüklenme (bitiş)</label>
+            <input id="BitisTarihi" name="BitisTarihi" type="date" class="form-control" value="@Tarih(filtre.BitisTarihi)" />
+        </div>
+        <div class="filtre-butonlari">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Filtrele</button>
+            <a class="btn btn-outline-primary" asp-action="Belgeler">Temizle</a>
+        </div>
+    </div>
+</form>
+
+<partial name="_BelgeTablosu" model="Model" />

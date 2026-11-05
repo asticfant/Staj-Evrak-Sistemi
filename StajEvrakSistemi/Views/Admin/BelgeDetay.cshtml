@@ -1,0 +1,208 @@
+@model BelgeDetay
+@{
+    ViewData["Title"] = "Belge detayı";
+    var belge = Model.Belge;
+    var ogrenci = belge.Student;
+    var staj = Model.StajBilgisi ?? belge.StajBilgisi;
+    var gunAdlari = new Dictionary<DayOfWeek, string>
+    {
+        [DayOfWeek.Monday] = "Pzt", [DayOfWeek.Tuesday] = "Sal", [DayOfWeek.Wednesday] = "Çar",
+        [DayOfWeek.Thursday] = "Per", [DayOfWeek.Friday] = "Cum", [DayOfWeek.Saturday] = "Cmt", [DayOfWeek.Sunday] = "Paz"
+    };
+}
+@functions {
+    static string DurumMetni(DocumentDurum d) => d switch
+    {
+        DocumentDurum.Yuklendi => "Yüklendi",
+        DocumentDurum.Inceleniyor => "İnceleniyor",
+        DocumentDurum.HataliEksik => "Hatalı / Eksik",
+        DocumentDurum.Onaylandi => "Onaylandı",
+        DocumentDurum.Tamamlandi => "Tamamlandı",
+        _ => d.ToString()
+    };
+}
+
+<p class="mb-2"><a asp-action="Belgeler"><i class="bi bi-arrow-left me-1"></i>Belgeler</a></p>
+
+<div class="baslik-satiri">
+    <header class="sayfa-baslik">
+        <h1>@(ogrenci?.AdSoyad ?? "Öğrenci") – Ek-16</h1>
+        <p>Öğrenci no @(ogrenci?.OgrenciNo ?? "–"), @belge.YuklenmeTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm") tarihinde yüklendi</p>
+    </header>
+    <partial name="_DurumRozeti" model="belge.Durum" />
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="kagit">
+            <h2 class="kagit-baslik">Öğrenci ve staj</h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <dl class="bilgi-listesi">
+                        <dt>Kimlik no</dt><dd>@(ogrenci?.TcKimlikNo ?? "–")</dd>
+                        <dt>Uyruk</dt><dd>@(ogrenci?.Uyruk ?? "–")</dd>
+                        <dt>Bölüm</dt><dd>@(ogrenci?.Bolum ?? "–")</dd>
+                        <dt>Telefon</dt><dd>@(ogrenci?.Telefon ?? "–")</dd>
+                        <dt>E-posta</dt><dd>@(ogrenci?.Email ?? "–")</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    @if (staj is null)
+                    {
+                        <p class="text-secondary">Staj bilgisi yok.</p>
+                    }
+                    else
+                    {
+                        <dl class="bilgi-listesi">
+                            <dt>Dönem</dt><dd>@staj.StajBaslangic.ToString("dd.MM.yyyy") – @staj.StajBitis.ToString("dd.MM.yyyy")</dd>
+                            <dt>Günler</dt><dd>@(string.Join(", ", staj.CalisilanGunler.Select(g => gunAdlari[g])))</dd>
+                            <dt>İşyeri</dt><dd>@staj.IsyeriAdi</dd>
+                            <dt>Mühendis</dt><dd>@staj.MuhendisSayisi kişi, @staj.MuhendisBolumu</dd>
+                            <dt>Teslim yılı</dt><dd>@staj.Ek16TeslimYili</dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="kagit">
+            <h2 class="kagit-baslik">Form ile belge arasındaki farklar</h2>
+            @if (Model.Hatalar.Count == 0)
+            {
+                <p class="text-secondary mb-0">Fark bulunmadı.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead><tr><th>Alan</th><th>Öğrencinin girdiği</th><th>Belgede okunan</th><th>Açıklama</th></tr></thead>
+                        <tbody>
+                            @foreach (var h in Model.Hatalar)
+                            {
+                                <tr class="@(h.Tur == IssueTuru.Uyusmazlik ? "satir-uyusmazlik" : h.Tur == IssueTuru.Okunamadi ? "satir-okunamadi" : "")">
+                                    <td class="fw-medium"><partial name="_AlanAdi" model="h.AlanAdi" /></td>
+                                    <td class="text-nowrap">@(string.IsNullOrWhiteSpace(h.GirilenDeger) ? "–" : h.GirilenDeger)</td>
+                                    <td class="text-nowrap">@(string.IsNullOrWhiteSpace(h.OkunanDeger) ? "–" : h.OkunanDeger)</td>
+                                    <td>@h.Mesaj</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="kagit">
+            <h2 class="kagit-baslik">Veri seti ile farklar</h2>
+            <p class="text-secondary small">Belgede okunan bilgiler, admin'in yüklediği test veri setindeki aynı öğrenci numaralı kayıtla karşılaştırılır.</p>
+            @if (Model.VeriSetiFarklari.Count == 0)
+            {
+                <p class="text-secondary mb-0">Fark bulunmadı.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead><tr><th>Alan</th><th>Veri setinde</th><th>Belgede okunan</th><th>Açıklama</th></tr></thead>
+                        <tbody>
+                            @foreach (var h in Model.VeriSetiFarklari)
+                            {
+                                <tr class="satir-uyusmazlik">
+                                    <td class="fw-medium"><partial name="_AlanAdi" model="h.AlanAdi" /></td>
+                                    <td class="text-nowrap">@(string.IsNullOrWhiteSpace(h.GirilenDeger) ? "–" : h.GirilenDeger)</td>
+                                    <td class="text-nowrap">@(string.IsNullOrWhiteSpace(h.OkunanDeger) ? "–" : h.OkunanDeger)</td>
+                                    <td>@h.Mesaj</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="kagit">
+            <h2 class="kagit-baslik">Belgeden okunan alanlar</h2>
+            @if (Model.OkunanAlanlar.Count == 0)
+            {
+                <p class="text-secondary mb-0">Bu belge otomatik okunmadı. Resim ve taranmış belgeler final aşamasında OCR ile okunacak.</p>
+            }
+            else
+            {
+                <dl class="bilgi-listesi">
+                    @foreach (var alan in Model.OkunanAlanlar)
+                    {
+                        <dt><partial name="_AlanAdi" model="alan.AlanAdi" /></dt>
+                        <dd>@(string.IsNullOrWhiteSpace(alan.Deger) ? "–" : alan.Deger)</dd>
+                    }
+                </dl>
+            }
+        </div>
+    </div>
+
+    <aside class="col-lg-4">
+        <div class="kagit islem-paneli">
+            <h2 class="kagit-baslik">İşlemler</h2>
+
+            @* Tamamla sadece Onaylandı belgede görünür. Buton gizlense de asıl kural
+               Document.Tamamla() içinde: Onaylandı değilse hata fırlatır. *@
+            @if (belge.Durum == DocumentDurum.Onaylandi)
+            {
+                <form asp-action="Tamamla" asp-route-documentId="@belge.Id" method="post" class="islem">
+                    <h3>Belgeyi tamamla</h3>
+                    <p>Sistem belgeyi onayladı. Tamamlanan belgeyi öğrenci artık değiştiremez.</p>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-patch-check me-1"></i>Tamamla</button>
+                </form>
+            }
+
+            <form asp-action="DurumGuncelle" asp-route-documentId="@belge.Id" method="post" class="islem">
+                <h3>Durumu elle değiştir</h3>
+                <p>Okunamayan belgeleri inceledikten sonra veya yanlış durumu düzeltmek için.</p>
+                <label class="visually-hidden" for="durum">Yeni durum</label>
+                <div class="d-flex gap-2">
+                    <select id="durum" name="durum" class="form-select">
+                        @foreach (var d in Enum.GetValues<DocumentDurum>())
+                        {
+                            <option value="@d" selected="@(belge.Durum == d)">@DurumMetni(d)</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary">Kaydet</button>
+                </div>
+            </form>
+
+            <div class="islem">
+                <h3>Ek-17</h3>
+                <p>Tamamlanan belgeden Ek-17 üretimi final aşamasında eklenecek.</p>
+                <button type="button" class="btn btn-outline-primary w-100" disabled>Ek-17 oluştur</button>
+            </div>
+
+            <div class="islem">
+                <h3>Belgeyi sil</h3>
+                <p>Belge, dosyası ve kontrol sonuçları kalıcı olarak silinir.</p>
+                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#silOnay">
+                    <i class="bi bi-trash me-1"></i>Belgeyi sil
+                </button>
+            </div>
+        </div>
+    </aside>
+</div>
+
+@* Silmeden önce onay penceresi (Bootstrap modal) *@
+<div class="modal fade" id="silOnay" tabindex="-1" aria-labelledby="silOnayBaslik" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="silOnayBaslik">Belge silinsin mi?</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                Bu Ek-16 belgesi, dosyası ve kontrol sonuçları silinecek. Bu işlem geri alınamaz.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Vazgeç</button>
+                <form asp-action="BelgeSil" asp-route-documentId="@belge.Id" method="post">
+                    <button type="submit" class="btn btn-danger">Belgeyi sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

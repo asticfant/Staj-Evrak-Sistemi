@@ -1,0 +1,103 @@
+@model StajBilgisi?
+@*
+    Staj bilgileri formu. Evrak Yükle ve Staj Bilgisi Düzelt sayfaları bu parçayı kullanır.
+    Alan adları (name="...") StajBilgisi sınıfıyla ve StudentController'daki
+    [Bind(StajFormAlanlari)] listesiyle aynı olmalı; yoksa bilgi controller'a ulaşmaz.
+
+    Tarihlerde asp-for yerine elle value veriliyor: boş bir StajBilgisi'nde tarih
+    0001-01-01 olarak görünmesin diye.
+*@
+@{
+    string Tarih(DateTime? t) => t.HasValue && t.Value != default ? t.Value.ToString("yyyy-MM-dd") : "";
+
+    // Değerler İngilizce DayOfWeek adları (model binding enum'a böyle çevirir), ekranda Türkçe.
+    var gunler = new (DayOfWeek Gun, string Ad)[]
+    {
+        (DayOfWeek.Monday, "Pazartesi"), (DayOfWeek.Tuesday, "Salı"), (DayOfWeek.Wednesday, "Çarşamba"),
+        (DayOfWeek.Thursday, "Perşembe"), (DayOfWeek.Friday, "Cuma"), (DayOfWeek.Saturday, "Cumartesi"),
+        (DayOfWeek.Sunday, "Pazar")
+    };
+    var secili = Model?.CalisilanGunler ?? new List<DayOfWeek>();
+}
+
+<section class="form-bolumu">
+    <div>
+        <h2>Staj dönemi</h2>
+        <p>Belgedeki tarihlerle aynı olmalı. Staj yaptığın günleri işaretle.</p>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label" for="Ek16TeslimYili">Teslim yılı *</label>
+            <input id="Ek16TeslimYili" name="Ek16TeslimYili" class="form-control" value="@(Model?.Ek16TeslimYili)"
+                   placeholder="2025-2026" required />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="StajBaslangic">Başlangıç *</label>
+            <input id="StajBaslangic" name="StajBaslangic" type="date" class="form-control" value="@Tarih(Model?.StajBaslangic)" required />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="StajBitis">Bitiş *</label>
+            <input id="StajBitis" name="StajBitis" type="date" class="form-control" value="@Tarih(Model?.StajBitis)" required />
+        </div>
+        <fieldset class="col-12">
+            <legend class="form-label fs-6">Çalışılan günler *</legend>
+            <div class="gunler">
+                @foreach (var g in gunler)
+                {
+                    @* Aynı name'e sahip checkbox'ların değerleri List<DayOfWeek> olarak toplanır. *@
+                    <input type="checkbox" id="gun-@(g.Gun)" name="CalisilanGunler" value="@g.Gun" checked="@secili.Contains(g.Gun)" />
+                    <label for="gun-@(g.Gun)">@g.Ad</label>
+                }
+            </div>
+        </fieldset>
+    </div>
+</section>
+
+<section class="form-bolumu">
+    <div>
+        <h2>İşyeri</h2>
+        <p>Staj yapacağın kurumun iletişim bilgileri.</p>
+    </div>
+    <div class="row g-3">
+        <div class="col-12">
+            <label class="form-label" for="IsyeriAdi">İşyeri adı *</label>
+            <input id="IsyeriAdi" name="IsyeriAdi" class="form-control" value="@(Model?.IsyeriAdi)" required />
+        </div>
+        <div class="col-12">
+            <label class="form-label" for="IsyeriAdresi">İşyeri adresi *</label>
+            <textarea id="IsyeriAdresi" name="IsyeriAdresi" class="form-control" rows="2" required>@(Model?.IsyeriAdresi)</textarea>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="IsyeriTelefon">İşyeri telefonu *</label>
+            <input id="IsyeriTelefon" name="IsyeriTelefon" type="tel" class="form-control" value="@(Model?.IsyeriTelefon)"
+                   placeholder="+90 262 xxx xx xx" required />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="IsyeriEmail">İşyeri e-postası *</label>
+            <input id="IsyeriEmail" name="IsyeriEmail" type="email" class="form-control" value="@(Model?.IsyeriEmail)" required />
+        </div>
+    </div>
+</section>
+
+<section class="form-bolumu">
+    <div>
+        <h2>Mühendis bilgisi</h2>
+        <p>Kurumda çalışan mühendis sayısı ve sana eşlik edecek mühendisin bölümü.</p>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label" for="MuhendisSayisi">Mühendis sayısı *</label>
+            <input id="MuhendisSayisi" name="MuhendisSayisi" type="number" min="0" class="form-control"
+                   value="@(Model?.MuhendisSayisi ?? 0)" required />
+        </div>
+        <div class="col-md-8">
+            <label class="form-label" for="MuhendisBolumu">Mühendisin bölümü *</label>
+            <input id="MuhendisBolumu" name="MuhendisBolumu" class="form-control" value="@(Model?.MuhendisBolumu)"
+                   list="muhendisBolumleri" required />
+            <datalist id="muhendisBolumleri">
+                <option value="Yazılım Mühendisliği"></option>
+                <option value="Bilgisayar Mühendisliği"></option>
+            </datalist>
+        </div>
+    </div>
+</section>

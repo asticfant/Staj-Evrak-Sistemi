@@ -1,0 +1,64 @@
+@model ImportSonucu?
+@{
+    ViewData["Title"] = "Veri seti";
+}
+
+<header class="sayfa-baslik">
+    <h1>Test veri setini yükle</h1>
+    <p>
+        Excel dosyasındaki öğrenci kayıtları veri seti tablosuna eklenir. Bu kayıtlar kullanıcı hesabı oluşturmaz;
+        sadece yüklenen belgelerle karşılaştırmak için kullanılır.
+    </p>
+</header>
+
+@* Model sadece POST sonrası dolu gelir (controller: return View(sonuc)). *@
+@if (Model is not null)
+{
+    <div class="kagit mb-3">
+        <h2 class="kagit-baslik">Aktarım sonucu</h2>
+        <div class="sayi-ozet mb-3">
+            <div><strong>@Model.EklenenSayisi</strong><span>kayıt eklendi</span></div>
+            <div><strong>@Model.AtlananSayisi</strong><span>kayıt zaten vardı, atlandı</span></div>
+            <div><strong>@Model.Hatalar.Count</strong><span>satır hatalı</span></div>
+        </div>
+        @if (Model.Hatalar.Count > 0)
+        {
+            <div class="sonuc-kutusu sonuc-kotu">
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                <div>
+                    <p class="fw-medium mb-1">Bu satırlar eklenmedi:</p>
+                    <ul class="mb-0 ps-3">
+                        @foreach (var hata in Model.Hatalar)
+                        {
+                            <li>@hata</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="kagit">
+    <form asp-action="VeriSetiYukle" method="post" enctype="multipart/form-data">
+        <section class="form-bolumu">
+            <div>
+                <h2>Excel dosyası</h2>
+                <p>İlk satır başlık olmalı. Aynı öğrenci numarası tekrar gelirse o satır atlanır.</p>
+            </div>
+            <div>
+                <div class="dosya-alani mb-3">
+                    <label class="form-label" for="dosya"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Veri seti (.xlsx) *</label>
+                    <input id="dosya" name="dosya" type="file" class="form-control" accept=".xlsx" required />
+                </div>
+                <p class="form-text mb-0">
+                    Beklenen sütunlar: AdSoyad, TcKimlikNo, Uyruk, OgrenciNo, DogumTarihi, Adres, Bolum, Ek16TeslimYili,
+                    OncekiStajGunSayisi, Email, Telefon, SaglikYardimiStatusu. Örnek dosyalar repodaki TestVerileri klasöründe.
+                </p>
+            </div>
+        </section>
+        <div class="form-alt">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Veri setini yükle</button>
+        </div>
+    </form>
+</div>

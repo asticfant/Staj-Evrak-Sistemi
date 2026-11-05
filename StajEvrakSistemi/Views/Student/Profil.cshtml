@@ -1,0 +1,115 @@
+@model Student
+@{
+    ViewData["Title"] = "Profil";
+    // Profil eksikse belge yüklenemez (DocumentService.BelgeYukle bunu kontrol ediyor).
+    var tamam = Model.ProfilTamamMi();
+}
+
+<header class="sayfa-baslik">
+    <h1>Profil bilgilerin</h1>
+    <p>Bu bilgiler yüklediğin her Ek-16 belgesiyle karşılaştırılır. Belgede nasıl yazıyorsa öyle gir.</p>
+</header>
+
+@if (!tamam)
+{
+    <div class="sonuc-kutusu sonuc-bekliyor mb-4" role="status">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <p>Belge yükleyebilmek için yıldızlı alanların hepsini doldurman gerekiyor.</p>
+    </div>
+}
+
+<div class="kagit">
+    @* Model Student, ama form ProfilKaydet eylemine ProfilFormu olarak gider.
+       İki sınıftaki alan adları aynı olduğu için asp-for doğru name="..." değerlerini üretir. *@
+    <form asp-action="ProfilKaydet" method="post">
+        <section class="form-bolumu">
+            <div>
+                <h2>Kimlik</h2>
+                <p>Yabancı uyruklu öğrenciler kimlik numarası olarak 99 ile başlayan yabancı kimlik numarasını yazar.</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label asp-for="AdSoyad" class="form-label">Ad soyad *</label>
+                    <input asp-for="AdSoyad" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="DogumTarihi" class="form-label">Doğum tarihi *</label>
+                    <input asp-for="DogumTarihi" type="date" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Uyruk" class="form-label">Uyruk *</label>
+                    <select asp-for="Uyruk" class="form-select" required>
+                        <option value="">Seç</option>
+                        <option value="T.C.">T.C.</option>
+                        <option value="Yabancı">Yabancı</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="TcKimlikNo" class="form-label">Kimlik no *</label>
+                    <input asp-for="TcKimlikNo" class="form-control" inputmode="numeric" maxlength="11" required />
+                </div>
+            </div>
+        </section>
+
+        <section class="form-bolumu">
+            <div>
+                <h2>Öğrenim</h2>
+                <p>Daha önce staj yapmadıysan önceki staj günü 0 kalabilir.</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="OgrenciNo" class="form-label">Öğrenci no *</label>
+                    <input asp-for="OgrenciNo" class="form-control" inputmode="numeric" required />
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Bolum" class="form-label">Bölüm *</label>
+                    <input asp-for="Bolum" class="form-control" list="bolumler" required />
+                    <datalist id="bolumler">
+                        <option value="Yazılım Mühendisliği"></option>
+                        <option value="Bilgisayar Mühendisliği"></option>
+                    </datalist>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="OncekiStajGunSayisi" class="form-label">Önceki staj günü</label>
+                    <input asp-for="OncekiStajGunSayisi" type="number" min="0" class="form-control" />
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="SaglikYardimiStatusu" class="form-label">Sağlık yardımı statüsü</label>
+                    <input asp-for="SaglikYardimiStatusu" class="form-control" list="saglik" />
+                    <datalist id="saglik">
+                        <option value="Var"></option>
+                        <option value="Yok"></option>
+                        <option value="Ailesinden alıyor"></option>
+                    </datalist>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-bolumu">
+            <div>
+                <h2>İletişim</h2>
+                <p>Telefon +90 xxx xxx xx xx biçiminde. Adres sırası: mahalle, cadde/sokak, bina no, daire no, ilçe, il.</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Telefon" class="form-label">Telefon *</label>
+                    <input asp-for="Telefon" type="tel" class="form-control" placeholder="+90 5xx xxx xx xx" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="kayitliEposta">E-posta</label>
+                    @* E-posta kayıt sırasında girildi; profil formunda değiştirilmiyor. *@
+                    <input id="kayitliEposta" class="form-control" value="@Model.Email" disabled />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Adres" class="form-label">İkametgâh adresi *</label>
+                    <textarea asp-for="Adres" class="form-control" rows="2" required
+                              placeholder="Cumhuriyet Mah., Lale Cad., Bina No:5, Daire No:2, İzmit, Kocaeli"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <div class="form-alt">
+            <button type="submit" class="btn btn-primary">Profili kaydet</button>
+        </div>
+    </form>
+</div>
