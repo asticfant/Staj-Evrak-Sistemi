@@ -1,0 +1,39 @@
+@model StajBilgisi?
+@{
+    ViewData["Title"] = "Evrak yükle";
+}
+
+<header class="sayfa-baslik">
+    <h1>Ek-16 yükle</h1>
+    <p>Belgeni seç ve staj bilgilerini gir. Sistem belgeyi okuyup girdiklerinle karşılaştırır.</p>
+</header>
+
+<div class="kagit">
+    @* enctype="multipart/form-data" olmadan dosya sunucuya gönderilmez. *@
+    <form asp-action="EvrakYukle" method="post" enctype="multipart/form-data">
+        @* Geçersiz dosya, eksik profil gibi servis mesajları burada görünür. *@
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <section class="form-bolumu">
+            <div>
+                <h2>Belge</h2>
+                <p>Word (.doc, .docx), PDF, JPEG veya PNG; en fazla 10 MB.</p>
+            </div>
+            <div class="dosya-alani">
+                <label class="form-label" for="dosya"><i class="bi bi-file-earmark-arrow-up me-1"></i>Ek-16 dosyası *</label>
+                @* accept sadece dosya seçme penceresini filtreler; asıl kontrol sunucuda
+                   (DocumentService: uzantı, dosya imzası ve boyut). *@
+                <input id="dosya" name="dosya" type="file" class="form-control"
+                       accept=".doc,.docx,.pdf,.jpg,.jpeg,.png" required />
+                <div class="form-text">Taranmış belgeler ve resimler final aşamasında otomatik okunacak; şimdilik admin elle inceler.</div>
+            </div>
+        </section>
+
+        <partial name="_StajFormu" model="Model" />
+
+        <div class="form-alt">
+            <a class="btn btn-outline-primary" asp-action="Belgelerim">Vazgeç</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Yükle ve kontrol et</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,50 @@
+@model List<Document>
+@*
+    Belgeler ve Tamamlananlar sayfalarının ortak tablosu.
+    Öğrenci bilgisi için BelgeSorguService'in sorguya Include(d => d.Student) eklemesi gerekiyor;
+    eklenmezse öğrenci sütunları "–" görünür.
+*@
+<div class="kagit p-0">
+    @if (Model.Count == 0)
+    {
+        <div class="bos-durum">
+            <i class="bi bi-inbox" aria-hidden="true"></i>
+            <p class="mb-0">Bu ölçütlere uyan belge yok.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Öğrenci no</th>
+                        <th>Ad soyad</th>
+                        <th>Bölüm</th>
+                        <th>Yüklenme</th>
+                        <th>Dosya</th>
+                        <th>Durum</th>
+                        <th><span class="visually-hidden">İşlem</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var belge in Model)
+                    {
+                        <tr>
+                            <td>@(belge.Student?.OgrenciNo ?? "–")</td>
+                            <td>@(belge.Student?.AdSoyad ?? "–")</td>
+                            <td>@(belge.Student?.Bolum ?? "–")</td>
+                            <td>@belge.YuklenmeTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@belge.DosyaTuru.ToString().ToUpperInvariant()</td>
+                            <td><partial name="_DurumRozeti" model="belge.Durum" /></td>
+                            <td class="text-end">
+                                <a asp-controller="Admin" asp-action="BelgeDetay" asp-route-documentId="@belge.Id">İncele</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-secondary small px-3 py-2 mb-0 border-top">@Model.Count belge</p>
+    }
+</div>

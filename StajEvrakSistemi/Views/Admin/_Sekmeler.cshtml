@@ -1,0 +1,13 @@
+@*
+    Belgeler ve Tamamlananlar sayfalarının üstündeki sekmeler.
+    Hangi sekmenin seçili olduğu açık olan eylemin adından anlaşılıyor.
+*@
+@{
+    var aktif = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<nav class="nav sekmeler" aria-label="Belge listeleri">
+    <a class="nav-link @(aktif == "Belgeler" ? "active" : "")" asp-action="Belgeler"
+       aria-current="@(aktif == "Belgeler" ? "page" : null)">Tüm belgeler</a>
+    <a class="nav-link @(aktif == "Tamamlananlar" ? "active" : "")" asp-action="Tamamlananlar"
+       aria-current="@(aktif == "Tamamlananlar" ? "page" : null)">Tamamlananlar</a>
+</nav>

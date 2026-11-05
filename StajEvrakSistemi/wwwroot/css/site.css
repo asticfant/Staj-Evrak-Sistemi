@@ -181,7 +181,9 @@ h3, h4, h5 { font-weight: 600; }
 .form-control, .form-select {
   border-color: var(--cizgi);
   padding: .6rem .8rem;
+  background-color: #fff;
 }
+.form-control:disabled { background-color: #F1F3F7; }
 .form-control:focus, .form-select:focus {
   border-color: var(--muhur);
   box-shadow: 0 0 0 .2rem rgba(74, 58, 184, .15);
@@ -220,6 +222,8 @@ h3, h4, h5 { font-weight: 600; }
 
 /* ---------- 6. Tablolar (form ızgarası gibi) ---------- */
 .table { --bs-table-bg: transparent; margin-bottom: 0; }
+/* Ekran okuyucu etiketleri (visually-hidden) yatay kaydırma kutusunun dışına taşmasın */
+.table-responsive { position: relative; }
 .table > thead th {
   font-size: .825rem;
   font-weight: 600;
@@ -369,7 +373,158 @@ h3, h4, h5 { font-weight: 600; }
   color: var(--durum-hata);
 }
 
-/* ---------- 10. Küçük ekranlar ---------- */
+/* ---------- 10. Öğrenci ve admin sayfaları ---------- */
+
+/* Başlık satırı: solda başlık, sağda ana işlem butonu */
+.baslik-satiri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.baslik-satiri .sayfa-baslik { margin-bottom: 0; }
+
+/* Form bölümleri: kâğıdın içinde, başlık solda, alanlar sağda */
+.form-bolumu {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--cizgi-acik);
+}
+.form-bolumu:first-of-type { border-top: 0; padding-top: 0; }
+.form-bolumu h2 { font-family: var(--yazi-govde); font-size: 1rem; font-weight: 600; margin-bottom: .25rem; }
+.form-bolumu > div:first-child p { color: var(--murekkep-soluk); font-size: .875rem; margin: 0; }
+.form-alt {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--cizgi-acik);
+}
+
+/* Dosya seçme alanı */
+.dosya-alani {
+  border: 2px dashed var(--cizgi);
+  border-radius: .5rem;
+  padding: 1.25rem;
+  background: #FAFBFD;
+}
+.dosya-alani:focus-within { border-color: var(--muhur); background: var(--muhur-acik); }
+
+/* Haftanın günleri: buton gibi görünen checkbox'lar */
+.gunler { display: flex; flex-wrap: wrap; gap: .4rem; }
+.gunler input { position: absolute; opacity: 0; pointer-events: none; }
+.gunler label {
+  padding: .4rem .8rem;
+  border: 1px solid var(--cizgi);
+  border-radius: .375rem;
+  background: #fff;
+  font-size: .9rem;
+  cursor: pointer;
+  user-select: none;
+}
+.gunler input:checked + label { background: var(--muhur); border-color: var(--muhur); color: #fff; }
+.gunler input:focus-visible + label { outline: 3px solid rgba(74, 58, 184, .45); outline-offset: 2px; }
+
+/* Bilgi listesi (etiket: değer) */
+.bilgi-listesi {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: .55rem 1.25rem;
+  margin: 0;
+  font-size: .94rem;
+}
+.bilgi-listesi dt { color: var(--murekkep-soluk); font-weight: 500; }
+.bilgi-listesi dd { margin: 0; }
+
+/* Rapor üst kısmı: solda bilgiler, sağda büyük mühür */
+.rapor-ust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+.muhur-buyuk { font-size: 1.5rem; padding: .6rem 1.3rem; }
+.muhur-bekliyor { color: var(--durum-inceleniyor); }
+.muhur-tamam { color: var(--durum-tamam); }
+
+/* Hata tablosu satırları */
+.satir-uyusmazlik > td:first-child { box-shadow: inset 3px 0 0 var(--durum-hata); }
+.satir-okunamadi > td:first-child  { box-shadow: inset 3px 0 0 var(--durum-uyari); }
+.deger-girilen { color: var(--murekkep); }
+.deger-okunan  { color: var(--durum-hata); font-weight: 500; }
+.deger-bos     { color: var(--murekkep-soluk); font-style: italic; }
+.tur-etiketi { font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.tur-uyusmazlik { color: var(--durum-hata); }
+.tur-okunamadi  { color: var(--durum-uyari); }
+.tur-diger      { color: var(--murekkep-soluk); }
+
+.sonuc-kutusu {
+  display: flex;
+  gap: .9rem;
+  align-items: flex-start;
+  padding: 1rem 1.1rem;
+  border-radius: .5rem;
+  border: 1px solid;
+}
+.sonuc-kutusu .bi { font-size: 1.35rem; line-height: 1.2; }
+.sonuc-kutusu p { margin: 0; }
+.sonuc-iyi     { background: #E7F4EC; border-color: #BFE0CC; color: #145A37; }
+.sonuc-bekliyor{ background: #EAF0FC; border-color: #C9D7F5; color: #1C4596; }
+.sonuc-kotu    { background: #FBECEB; border-color: #F0C8C5; color: #8C1D17; }
+
+details.ek-bilgi summary { cursor: pointer; color: var(--muhur); font-weight: 500; }
+details.ek-bilgi[open] summary { margin-bottom: .75rem; }
+
+/* Admin sekmeleri */
+.sekmeler { border-bottom: 1px solid var(--cizgi); margin-bottom: 1.25rem; gap: .25rem; }
+.sekmeler .nav-link {
+  color: var(--murekkep-soluk);
+  font-weight: 500;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: .6rem .9rem;
+  margin-bottom: -1px;
+}
+.sekmeler .nav-link:hover { color: var(--murekkep); }
+.sekmeler .nav-link.active { color: var(--muhur); border-bottom-color: var(--muhur); background: none; }
+
+/* Filtre çubuğu */
+.filtre {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: .75rem;
+  align-items: end;
+}
+.filtre .form-label { font-size: .825rem; }
+.filtre .form-control, .filtre .form-select { padding: .45rem .65rem; }
+.filtre-butonlari { display: flex; gap: .4rem; }
+.filtre-butonlari .btn { flex: 1 1 auto; white-space: nowrap; padding: .45rem .9rem; }
+
+/* Admin belge detayı: içerik + yan işlem paneli */
+.islem-paneli { position: sticky; top: 1rem; }
+.islem-paneli .islem + .islem { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--cizgi-acik); }
+.islem-paneli h3 { font-size: .95rem; margin-bottom: .5rem; }
+.islem-paneli p { font-size: .85rem; color: var(--murekkep-soluk); margin-bottom: .6rem; }
+
+.sayi-ozet { display: flex; flex-wrap: wrap; gap: 2rem; }
+.sayi-ozet strong { display: block; font-family: var(--yazi-baslik); font-size: 2rem; line-height: 1.1; }
+.sayi-ozet span { color: var(--murekkep-soluk); font-size: .9rem; }
+
+/* ---------- 11. Küçük ekranlar ---------- */
+@media (max-width: 767.98px) {
+  .form-bolumu { grid-template-columns: 1fr; gap: .75rem; }
+  .islem-paneli { position: static; }
+  .form-alt { flex-wrap: wrap; }
+  .form-alt > p { flex-basis: 100%; margin-bottom: .5rem !important; }
+  .form-alt > .btn { flex: 1 1 auto; }
+  .filtre-butonlari { grid-column: 1 / -1; }
+}
 @media (max-width: 575.98px) {
   .kagit { padding: 1.25rem; }
   .alan-satiri { grid-template-columns: 1fr auto; }

@@ -1,0 +1,13 @@
+@model List<Document>
+@{
+    ViewData["Title"] = "Tamamlananlar";
+}
+
+<header class="sayfa-baslik">
+    <h1>Tamamlanan belgeler</h1>
+    <p>Öğrenciler bu belgeleri değiştiremez ve silemez; gerekirse güncelleme ve silme bu sayfadan, admin tarafından yapılır.</p>
+</header>
+
+<partial name="_Sekmeler" />
+
+<partial name="_BelgeTablosu" model="Model" />

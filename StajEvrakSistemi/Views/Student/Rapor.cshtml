@@ -1,0 +1,133 @@
+@model BelgeDetay
+@{
+    ViewData["Title"] = "Kontrol raporu";
+    var belge = Model.Belge;
+    var staj = Model.StajBilgisi ?? belge.StajBilgisi;
+
+    var uyusmazliklar = Model.Hatalar.Where(h => h.Tur == IssueTuru.Uyusmazlik).ToList();
+    var digerSorunlar = Model.Hatalar.Where(h => h.Tur != IssueTuru.Uyusmazlik).ToList();
+
+    // Büyük mühür: belgenin şu anki durumu
+    var (muhurMetni, muhurSinifi) = belge.Durum switch
+    {
+        DocumentDurum.HataliEksik => ("Hatalı / Eksik", ""),
+        DocumentDurum.Onaylandi   => ("Onaylandı", "muhur-onay"),
+        DocumentDurum.Tamamlandi  => ("Tamamlandı", "muhur-tamam"),
+        DocumentDurum.Inceleniyor => ("İnceleniyor", "muhur-bekliyor"),
+        _                         => ("Yüklendi", "muhur-bekliyor")
+    };
+}
+
+<p class="mb-2"><a asp-action="Belgelerim"><i class="bi bi-arrow-left me-1"></i>Belgelerim</a></p>
+
+<div class="kagit">
+    <div class="rapor-ust">
+        <div>
+            <h1 class="mb-2">Kontrol raporu</h1>
+            <dl class="bilgi-listesi">
+                <dt>Yüklenme</dt>
+                <dd>@belge.YuklenmeTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
+                <dt>Dosya</dt>
+                <dd>@belge.DosyaTuru.ToString().ToUpperInvariant()</dd>
+                @if (staj is not null)
+                {
+                    <dt>Staj dönemi</dt>
+                    <dd>@staj.StajBaslangic.ToString("dd.MM.yyyy") – @staj.StajBitis.ToString("dd.MM.yyyy")</dd>
+                    <dt>İşyeri</dt>
+                    <dd>@staj.IsyeriAdi</dd>
+                }
+            </dl>
+        </div>
+        <span class="muhur muhur-buyuk muhur-bas @muhurSinifi">@muhurMetni</span>
+    </div>
+</div>
+
+<div class="kagit">
+    <h2 class="kagit-baslik">Belge ile girdiğin bilgiler</h2>
+
+    @if ((belge.Durum is DocumentDurum.Yuklendi or DocumentDurum.Inceleniyor) && Model.Hatalar.Count == 0)
+    {
+        <div class="sonuc-kutusu sonuc-bekliyor">
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            <p>Belgen kontrol ediliyor. Sonuç bu sayfada görünecek.</p>
+        </div>
+    }
+    else if (uyusmazliklar.Count == 0 && digerSorunlar.Count == 0)
+    {
+        <div class="sonuc-kutusu sonuc-iyi">
+            <i class="bi bi-check-circle" aria-hidden="true"></i>
+            <p>Belgedeki bilgiler girdiklerinle uyuşuyor.</p>
+        </div>
+    }
+    else
+    {
+        if (uyusmazliklar.Count > 0)
+        {
+            <div class="sonuc-kutusu sonuc-kotu mb-3">
+                <i class="bi bi-x-circle" aria-hidden="true"></i>
+                <p>@uyusmazliklar.Count alanda belgedeki bilgi girdiğinden farklı. Belge mi yanlış, girdiğin mi, kontrol et.</p>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Alan</th>
+                        <th>Girdiğin</th>
+                        <th>Belgede okunan</th>
+                        <th>Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var h in Model.Hatalar)
+                    {
+                        var satirSinifi = h.Tur switch
+                        {
+                            IssueTuru.Uyusmazlik => "satir-uyusmazlik",
+                            IssueTuru.Okunamadi => "satir-okunamadi",
+                            _ => ""
+                        };
+                        <tr class="@satirSinifi">
+                            <td class="fw-medium"><partial name="_AlanAdi" model="h.AlanAdi" /></td>
+                            <td class="text-nowrap">
+                                @if (string.IsNullOrWhiteSpace(h.GirilenDeger)) { <span class="deger-bos">boş</span> }
+                                else { <span class="deger-girilen">@h.GirilenDeger</span> }
+                            </td>
+                            <td class="text-nowrap">
+                                @if (string.IsNullOrWhiteSpace(h.OkunanDeger)) { <span class="deger-bos">okunamadı</span> }
+                                else { <span class="deger-okunan">@h.OkunanDeger</span> }
+                            </td>
+                            <td>@h.Mesaj</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (belge.Durum == DocumentDurum.HataliEksik)
+    {
+        <div class="form-alt mt-3">
+            <p class="me-auto mb-0 text-secondary small align-self-center">
+                Hata formda girdiğin bilgideyse düzelt; belgedeyse belgeni düzeltip yeniden yükle.
+            </p>
+            <a class="btn btn-outline-primary" asp-action="EvrakYukle">Yeni belge yükle</a>
+            <a class="btn btn-primary" asp-action="StajBilgisiDuzelt" asp-route-documentId="@belge.Id">Staj bilgilerini düzelt</a>
+        </div>
+    }
+
+    @if (Model.OkunanAlanlar.Count > 0)
+    {
+        <details class="ek-bilgi mt-4">
+            <summary>Belgeden okunan tüm alanlar (@Model.OkunanAlanlar.Count)</summary>
+            <dl class="bilgi-listesi">
+                @foreach (var alan in Model.OkunanAlanlar)
+                {
+                    <dt><partial name="_AlanAdi" model="alan.AlanAdi" /></dt>
+                    <dd>@(string.IsNullOrWhiteSpace(alan.Deger) ? "–" : alan.Deger)</dd>
+                }
+            </dl>
+        </details>
+    }
+</div>

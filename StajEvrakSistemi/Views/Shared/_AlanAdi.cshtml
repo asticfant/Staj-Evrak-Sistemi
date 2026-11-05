@@ -1,0 +1,34 @@
+@model string
+@*
+    Okuyucuların ve karşılaştırma servisinin kullandığı alan anahtarlarını
+    (Readers/Ek16Alanlari: "TcKimlikNo", "StajBaslangic"...) kullanıcıya Türkçe gösterir.
+    Kullanımı: <partial name="_AlanAdi" model="hata.AlanAdi" />
+    Listede olmayan bir anahtar gelirse olduğu gibi yazılır.
+*@
+@{
+    var ad = Model switch
+    {
+        "AdSoyad"        => "Ad soyad",
+        "TcKimlikNo"     => "Kimlik no",
+        "Uyruk"          => "Uyruk",
+        "OgrenciNo"      => "Öğrenci no",
+        "DogumTarihi"    => "Doğum tarihi",
+        "Adres"          => "İkametgâh adresi",
+        "Bolum"          => "Bölüm",
+        "Telefon"        => "Telefon",
+        "Email"          => "E-posta",
+        "SaglikYardimiStatusu" => "Sağlık yardımı",
+        "OncekiStajGunSayisi"  => "Önceki staj günü",
+        "Ek16TeslimYili" => "Teslim yılı",
+        "StajBaslangic"  => "Staj başlangıcı",
+        "StajBitis"      => "Staj bitişi",
+        "IsyeriAdi"      => "İşyeri adı",
+        "IsyeriAdresi"   => "İşyeri adresi",
+        "IsyeriTelefon"  => "İşyeri telefonu",
+        "IsyeriEmail"    => "İşyeri e-postası",
+        "MuhendisSayisi" => "Mühendis sayısı",
+        "MuhendisBolumu" => "Mühendis bölümü",
+        _                => Model
+    };
+}
+@ad
