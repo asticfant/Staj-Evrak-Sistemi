@@ -24,6 +24,19 @@ Programlama Laboratuvarı III – 2026-2027 Güz dönemi projesi.
 - `OgrenciVeriSeti.xlsx` – 30 öğrencilik ana veri seti (admin paneline yüklenir)
 - `OgrenciVeriSeti_HataliTest.xlsx` – içe aktarma kontrollerini denemek için 8 hatalı satır (`TestNotu` sütunu hatayı açıklar)
 
+## Sayfalar
+| Rol | Sayfa | Adres |
+|---|---|---|
+| Herkes | Ana sayfa, giriş, kayıt, 403 | `/`, `/Account/Giris`, `/Account/Kayit`, `/Account/ErisimEngellendi` |
+| Öğrenci | Profil | `/Student/Profil` |
+| Öğrenci | Ek-16 yükleme (dosya + staj formu) | `/Student/EvrakYukle` |
+| Öğrenci | Belgelerim, kontrol raporu, staj bilgisi düzeltme | `/Student/Belgelerim`, `/Student/Rapor?documentId=..` |
+| Admin | Belgeler (filtreli), Tamamlananlar, belge detayı | `/Admin/Belgeler`, `/Admin/Tamamlananlar`, `/Admin/BelgeDetay?documentId=..` |
+| Admin | Test veri seti yükleme | `/Admin/VeriSetiYukle` |
+
+Tasarım `wwwroot/css/site.css` (Bootstrap üzerine), tarayıcı tarafı kontroller `wwwroot/js/site.js`.
+Yazı tipleri (IBM Plex) ve Bootstrap Icons `wwwroot/lib` içinde; internet olmadan da çalışır.
+
 ## Klasör yapısı
 | Klasör | İçerik |
 |---|---|
