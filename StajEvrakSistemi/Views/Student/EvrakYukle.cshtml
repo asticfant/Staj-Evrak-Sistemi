@@ -10,7 +10,7 @@
 
 <div class="kagit">
     @* enctype="multipart/form-data" olmadan dosya sunucuya gönderilmez. *@
-    <form asp-action="EvrakYukle" method="post" enctype="multipart/form-data">
+    <form asp-action="EvrakYukle" method="post" enctype="multipart/form-data" data-tek-gonderim>
         @* Geçersiz dosya, eksik profil gibi servis mesajları burada görünür. *@
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -24,7 +24,8 @@
                 @* accept sadece dosya seçme penceresini filtreler; asıl kontrol sunucuda
                    (DocumentService: uzantı, dosya imzası ve boyut). *@
                 <input id="dosya" name="dosya" type="file" class="form-control"
-                       accept=".doc,.docx,.pdf,.jpg,.jpeg,.png" required />
+                       accept=".doc,.docx,.pdf,.jpg,.jpeg,.png" required
+                       data-dosya-kontrol data-uzantilar=".doc,.docx,.pdf,.jpg,.jpeg,.png" data-max-mb="10" />
                 <div class="form-text">Taranmış belgeler ve resimler final aşamasında otomatik okunacak; şimdilik admin elle inceler.</div>
             </div>
         </section>

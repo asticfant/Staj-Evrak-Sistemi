@@ -13,7 +13,7 @@
 <div class="kagit">
     @* documentId adres çubuğundan (?documentId=..) gider; controller'daki
        StajBilgisiDuzelt(int documentId, StajBilgisi staj) parametresine bağlanır. *@
-    <form asp-action="StajBilgisiDuzelt" asp-route-documentId="@Model.DocumentId" method="post">
+    <form asp-action="StajBilgisiDuzelt" asp-route-documentId="@Model.DocumentId" method="post" data-tek-gonderim>
         <partial name="_StajFormu" model="Model" />
 
         <div class="form-alt">

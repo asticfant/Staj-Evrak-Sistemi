@@ -33,15 +33,15 @@
         </div>
         <div class="col-md-4">
             <label class="form-label" for="StajBaslangic">Başlangıç *</label>
-            <input id="StajBaslangic" name="StajBaslangic" type="date" class="form-control" value="@Tarih(Model?.StajBaslangic)" required />
+            <input id="StajBaslangic" name="StajBaslangic" type="date" class="form-control" value="@Tarih(Model?.StajBaslangic)" required data-tarih-baslangic />
         </div>
         <div class="col-md-4">
             <label class="form-label" for="StajBitis">Bitiş *</label>
-            <input id="StajBitis" name="StajBitis" type="date" class="form-control" value="@Tarih(Model?.StajBitis)" required />
+            <input id="StajBitis" name="StajBitis" type="date" class="form-control" value="@Tarih(Model?.StajBitis)" required data-tarih-bitis />
         </div>
         <fieldset class="col-12">
             <legend class="form-label fs-6">Çalışılan günler *</legend>
-            <div class="gunler">
+            <div class="gunler" data-gun-grubu>
                 @foreach (var g in gunler)
                 {
                     @* Aynı name'e sahip checkbox'ların değerleri List<DayOfWeek> olarak toplanır. *@
