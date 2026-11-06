@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using StajEvrakSistemi.Data;
 using StajEvrakSistemi.Dtos;
 using StajEvrakSistemi.Models;
@@ -16,33 +17,78 @@ public class BelgeSorguService
         _karsilastirma = karsilastirma;
     }
 
-    // Not: Bu metotlar şimdilik boş liste döner ki arayüz (Emirhan) sayfaları
-    // backend bitmeden de açabilsin. Gerçek sorgular yazılınca TODO'lar silinecek.
-
-    public Task<List<Document>> Listele(BelgeFiltresi filtre)
+    public async Task<List<Document>> Listele(BelgeFiltresi filtre)
     {
-        // TODO (Mevlüt): _db.Documents.Include(d => d.Student) + filtre alanlarına göre Where'ler
-        return Task.FromResult(new List<Document>());
+        IQueryable<Document> sorgu = _db.Documents
+            .Include(d => d.Student)
+            .Include(d => d.StajBilgisi);
+
+        if (filtre.Durum.HasValue)
+        {
+            sorgu = sorgu.Where(d => d.Durum == filtre.Durum.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(filtre.OgrenciNo))
+        {
+            var no = filtre.OgrenciNo.Trim();
+            sorgu = sorgu.Where(d => d.Student!.OgrenciNo != null && d.Student.OgrenciNo.Contains(no));
+        }
+        if (!string.IsNullOrWhiteSpace(filtre.Bolum))
+        {
+            var bolum = filtre.Bolum.Trim();
+            sorgu = sorgu.Where(d => d.Student!.Bolum != null && d.Student.Bolum.Contains(bolum));
+        }
+        if (filtre.BaslangicTarihi.HasValue)
+        {
+            var bas = filtre.BaslangicTarihi.Value.Date;
+            sorgu = sorgu.Where(d => d.YuklenmeTarihi >= bas);
+        }
+        if (filtre.BitisTarihi.HasValue)
+        {
+            var bitis = filtre.BitisTarihi.Value.Date.AddDays(1); // bitiş günü dahil
+            sorgu = sorgu.Where(d => d.YuklenmeTarihi < bitis);
+        }
+
+        return await sorgu.OrderByDescending(d => d.YuklenmeTarihi).ToListAsync();
     }
 
     public Task<List<Document>> TamamlananlariListele()
     {
-        // TODO (Mevlüt): Listele(new BelgeFiltresi { Durum = DocumentDurum.Tamamlandi })
-        return Task.FromResult(new List<Document>());
+        return Listele(new BelgeFiltresi { Durum = DocumentDurum.Tamamlandi });
     }
 
-    public Task<List<Document>> OgrencininBelgeleri(int studentId)
+    public async Task<List<Document>> OgrencininBelgeleri(int studentId)
     {
-        // TODO (Mevlüt): Where(d => d.StudentId == studentId), en yeni üstte
-        return Task.FromResult(new List<Document>());
+        return await _db.Documents
+            .Include(d => d.StajBilgisi)
+            .Where(d => d.StudentId == studentId)
+            .OrderByDescending(d => d.YuklenmeTarihi)
+            .ToListAsync();
     }
 
-    public Task<BelgeDetay?> DetayGetir(int documentId)
+    public async Task<BelgeDetay?> DetayGetir(int documentId)
     {
-        // TODO (Mevlüt):
-        // 1) belgeyi Include(StajBilgisi, OkunanAlanlar, Hatalar, Student) ile getir
-        // 2) VeriSetiFarklari = _karsilastirma.VeriSetiIleKarsilastir(belge.OkunanAlanlar)
-        //    (admin sayfası için; kaydedilmez, her açılışta hesaplanır)
-        return Task.FromResult<BelgeDetay?>(null);
+        var belge = await _db.Documents
+            .Include(d => d.Student)
+            .Include(d => d.StajBilgisi)
+            .Include(d => d.OkunanAlanlar)
+            .Include(d => d.Hatalar)
+            .FirstOrDefaultAsync(d => d.Id == documentId);
+
+        if (belge == null)
+        {
+            return null;
+        }
+
+        return new BelgeDetay
+        {
+            Belge = belge,
+            StajBilgisi = belge.StajBilgisi,
+            OkunanAlanlar = belge.OkunanAlanlar,
+            Hatalar = belge.Hatalar,
+            // Admin sayfası için; kaydedilmez, her açılışta hesaplanır
+            VeriSetiFarklari = belge.OkunanAlanlar.Count > 0
+                ? _karsilastirma.VeriSetiIleKarsilastir(belge.OkunanAlanlar)
+                : new List<ValidationIssue>()
+        };
     }
 }
