@@ -97,7 +97,7 @@ public class DocumentService
 
         // 4) Belgeyi işle (oku → karşılaştır → durumu belirle)
         // TODO (B7 bitince yorumu kaldır):
-        // await _isleme.Isle(belge);
+         await _isleme.Isle(belge);
 
         return new YuklemeSonucu
         {
