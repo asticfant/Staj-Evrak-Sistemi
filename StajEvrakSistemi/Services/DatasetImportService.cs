@@ -5,10 +5,6 @@ using StajEvrakSistemi.Models;
 
 namespace StajEvrakSistemi.Services;
 
-/// <summary>
-/// Gereksinim 4.3 – Admin'in yüklediği Excel test veri setini VeriSetiKayitlari tablosuna aktarır.
-/// Kullanıcı hesabı OLUŞTURMAZ (hocanın cevabı: öğrenciler kendileri kayıt olur).
-/// </summary>
 public class DatasetImportService
 {
     private readonly AppDbContext _db;
@@ -18,31 +14,85 @@ public class DatasetImportService
         _db = db;
     }
 
-    public Task<ImportSonucu> ExceldenAktar(IFormFile dosya)
+    public async Task<ImportSonucu> ExceldenAktar(IFormFile dosya)
     {
-        // TODO (Muhammed):
-        // 1) using var workbook = new XLWorkbook(dosya.OpenReadStream());
-        // 2) ilk sayfanın başlık satırından sonraki her satır için:
-        //    - SatirdanKayitOlustur(satir); hatalıysa sonuc.Hatalar'a satır no + sebep ekle
-        //    - KayitVarMi(ogrenciNo) ise AtlananSayisi++, değilse Add + EklenenSayisi++
-        // 3) SaveChanges, sonucu dön
-        throw new NotImplementedException();
+        var sonuc = new ImportSonucu();
+        if (sonuc.Hatalar == null) sonuc.Hatalar = new List<string>();
+
+        using var stream = dosya.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheet(1);
+
+        var firstRow = worksheet.FirstRowUsed();
+        var headerColumns = new Dictionary<string, int>();
+        foreach (var cell in firstRow.CellsUsed())
+        {
+            headerColumns[cell.GetString().Trim()] = cell.Address.ColumnNumber;
+        }
+
+        var dataRows = worksheet.RowsUsed().Skip(1);
+
+        foreach (var row in dataRows)
+        {
+            try
+            {
+                string ogrenciNo = GetCellValue(row, headerColumns, "OgrenciNo");
+                if (string.IsNullOrWhiteSpace(ogrenciNo)) continue;
+
+                if (KayitVarMi(ogrenciNo))
+                {
+                    sonuc.AtlananSayisi++;
+                }
+                else
+                {
+                    var yeniKayit = SatirdanKayitOlustur(row, headerColumns);
+                    _db.VeriSetiKayitlari.Add(yeniKayit);
+                    sonuc.EklenenSayisi++;
+                }
+            }
+            catch (Exception)
+            {
+                sonuc.Hatalar.Add($"Satır {row.RowNumber()}: Beklenmeyen hata oluştu.");
+            }
+        }
+
+        await _db.SaveChangesAsync();
+        return sonuc;
     }
 
     private bool KayitVarMi(string ogrenciNo)
     {
-        // TODO: _db.VeriSetiKayitlari.Any(k => k.OgrenciNo == ogrenciNo)
-        throw new NotImplementedException();
+        return _db.VeriSetiKayitlari.Any(k => k.OgrenciNo == ogrenciNo);
     }
 
-    private VeriSetiKaydi SatirdanKayitOlustur(IXLRow satir)
+    private string GetCellValue(IXLRow row, Dictionary<string, int> headers, string columnName)
     {
-        // TODO: Sütunları sıraya göre değil, başlık satırındaki ADA göre bul
-        //   (TestVerileri/OgrenciVeriSeti.xlsx başlıkları):
-        //   AdSoyad, TcKimlikNo, Uyruk, OgrenciNo, DogumTarihi, Adres, Bolum,
-        //   Ek16TeslimYili, OncekiStajGunSayisi, Email, Telefon, SaglikYardimiStatusu
-        //   Fazladan gelen sütunlar (örn. hatalı test dosyasındaki TestNotu) yok sayılır.
-        //   TcKimlikNo, OgrenciNo, Telefon hücreleri metin olarak okunmalı (GetString()).
-        throw new NotImplementedException();
+        if (headers.TryGetValue(columnName, out int colIndex))
+        {
+            return row.Cell(colIndex).GetString().Trim();
+        }
+        return string.Empty;
+    }
+
+    private VeriSetiKaydi SatirdanKayitOlustur(IXLRow row, Dictionary<string, int> headers)
+    {
+        DateTime.TryParse(GetCellValue(row, headers, "DogumTarihi"), out DateTime dogumTarihi);
+        int.TryParse(GetCellValue(row, headers, "OncekiStajGunSayisi"), out int stajGun);
+
+        return new VeriSetiKaydi
+        {
+            OgrenciNo = GetCellValue(row, headers, "OgrenciNo"),
+            TcKimlikNo = GetCellValue(row, headers, "TcKimlikNo"),
+            AdSoyad = GetCellValue(row, headers, "AdSoyad"),
+            Uyruk = GetCellValue(row, headers, "Uyruk"),
+            DogumTarihi = dogumTarihi,
+            Adres = GetCellValue(row, headers, "Adres"),
+            Bolum = GetCellValue(row, headers, "Bolum"),
+            Ek16TeslimYili = GetCellValue(row, headers, "Ek16TeslimYili"),
+            OncekiStajGunSayisi = stajGun,
+            Email = GetCellValue(row, headers, "Email"),
+            Telefon = GetCellValue(row, headers, "Telefon"),
+            SaglikYardimiStatusu = GetCellValue(row, headers, "SaglikYardimiStatusu")
+        };
     }
 }
