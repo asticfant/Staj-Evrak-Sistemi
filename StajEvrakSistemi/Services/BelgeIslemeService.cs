@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using StajEvrakSistemi.Data;
 using StajEvrakSistemi.Models;
 using StajEvrakSistemi.Readers;
@@ -20,20 +21,92 @@ public class BelgeIslemeService
         _karsilastirma = karsilastirma;
     }
 
-    public Task Isle(Document document)
+    public async Task Isle(Document document)
     {
-        // TODO (Mevlüt / Muhammed):
-        // 1) document.Durum Yuklendi ise document.IncelemeyeAl()
-        // 2) var okuyucu = _okuyucuSecici.Sec(document.DosyaTuru);
-        //    okuyucu null ise (vizede resim / .doc) -> belge Inceleniyor'da kalır,
-        //    tek bir ValidationIssue { Tur = Okunamadi, Mesaj = "Bu belge türü finalde otomatik okunacak" } ekle, SaveChanges, çık
-        // 3) var alanlar = okuyucu.Oku(document.DosyaYolu);
-        //    document.OkunanAlanlar = alanlar.Select(a => new OkunanAlan { AlanAdi = a.Key, Deger = a.Value }).ToList();
-        // 4) var hatalar = _karsilastirma.FormIleKarsilastir(document.Student!, document.StajBilgisi!, document.OkunanAlanlar);
-        //    document.Hatalar = hatalar;
-        // 5) Uyusmazlik türünde hata varsa document.HataliOlarakIsaretle(), yoksa document.Onayla()
-        // 6) SaveChanges
-        // Final: 4. adımdan sonra IFieldValidator ve IBelgeKurali listeleri de çalıştırılacak (Bölüm 6)
-        throw new NotImplementedException();
+        // Öğrenci ve staj bilgisi yüklü değilse getir (karşılaştırma ikisine de bakar)
+        if (document.Student == null)
+        {
+            await _db.Entry(document).Reference(d => d.Student).LoadAsync();
+        }
+        if (document.StajBilgisi == null)
+        {
+            await _db.Entry(document).Reference(d => d.StajBilgisi).LoadAsync();
+        }
+
+        // 1) Yeni yüklenen belge kontrole alınır (yeniden kontrolde zaten Inceleniyor'dadır)
+        if (document.Durum == DocumentDurum.Yuklendi)
+        {
+            document.IncelemeyeAl();
+        }
+
+        // 2) Dosya türüne uygun okuyucu
+        var okuyucu = _okuyucuSecici.Sec(document.DosyaTuru);
+        if (okuyucu == null)
+        {
+            // Vizede resim / .doc: belge Inceleniyor'da kalır, admin elle inceler
+            document.Hatalar.Add(new ValidationIssue
+            {
+                AlanAdi = "Belge",
+                Tur = IssueTuru.Okunamadi,
+                Mesaj = "Bu belge türü finalde otomatik okunacak"
+            });
+            await _db.SaveChangesAsync();
+            return;
+        }
+
+        // 3) Oku ve okunan alanları kaydet
+        Dictionary<string, string> alanlar;
+        try
+        {
+            alanlar = okuyucu.Oku(document.DosyaYolu);
+        }
+        catch (Exception ex) when (ex is not NotSupportedException)
+        {
+            // Bozuk / şifreli dosya: belge Inceleniyor'da kalır
+            document.Hatalar.Add(new ValidationIssue
+            {
+                AlanAdi = "Belge",
+                Tur = IssueTuru.Okunamadi,
+                Mesaj = "Belge okunamadı: dosya bozuk olabilir"
+            });
+            await _db.SaveChangesAsync();
+            return;
+        }
+
+        if (alanlar.Count == 0)
+        {
+            // Metin içermeyen (taranmış) PDF -> OCR gerekir, final
+            document.Hatalar.Add(new ValidationIssue
+            {
+                AlanAdi = "Belge",
+                Tur = IssueTuru.Okunamadi,
+                Mesaj = "Belgede okunabilir metin bulunamadı (taranmış belge olabilir)"
+            });
+            await _db.SaveChangesAsync();
+            return;
+        }
+
+        document.OkunanAlanlar = alanlar
+            .Select(a => new OkunanAlan { AlanAdi = a.Key, Deger = a.Value })
+            .ToList();
+
+        // 4) Öğrencinin girdiği bilgilerle karşılaştır
+        var hatalar = _karsilastirma.FormIleKarsilastir(document.Student!, document.StajBilgisi!, document.OkunanAlanlar);
+        document.Hatalar = hatalar;
+
+        // 5) Uyuşmazlık ya da belgede boş alan varsa Hatalı/Eksik, yoksa Onaylandı
+        if (hatalar.Any(h => h.Tur is IssueTuru.Uyusmazlik or IssueTuru.BosAlan))
+        {
+            document.HataliOlarakIsaretle();
+        }
+        else
+        {
+            document.Onayla();
+        }
+
+        // Final: burada IFieldValidator ve IBelgeKurali listeleri de çalıştırılacak (Bölüm 6)
+
+        // 6) Kaydet
+        await _db.SaveChangesAsync();
     }
 }

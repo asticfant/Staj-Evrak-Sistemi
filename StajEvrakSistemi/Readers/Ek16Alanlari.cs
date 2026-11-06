@@ -16,6 +16,9 @@ public static class Ek16Alanlari
     public const string Bolum = "Bolum";
     public const string Telefon = "Telefon";
     public const string Email = "Email";
+    public const string Uyruk = "Uyruk";
+    public const string OncekiStajGunSayisi = "OncekiStajGunSayisi";
+    public const string SaglikYardimiStatusu = "SaglikYardimiStatusu";
 
     // Staj bilgileri
     public const string Ek16TeslimYili = "Ek16TeslimYili";
@@ -27,4 +30,9 @@ public static class Ek16Alanlari
     public const string IsyeriEmail = "IsyeriEmail";
     public const string MuhendisSayisi = "MuhendisSayisi";
     public const string MuhendisBolumu = "MuhendisBolumu";
+
+    // Onay / imza alanları (okunur ve raporda gösterilir; karşılaştırılmaz, kural kontrolü final)
+    public const string OgrenciOnayi = "OgrenciOnayi";
+    public const string DanismanOnayi = "DanismanOnayi";
+    public const string IsverenOnayi = "IsverenOnayi";
 }
