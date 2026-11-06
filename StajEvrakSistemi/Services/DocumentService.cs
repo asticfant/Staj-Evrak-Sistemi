@@ -148,8 +148,8 @@ public class DocumentService
         belge.YenidenKontrolEt();
         await _db.SaveChangesAsync();
 
-        // TODO (B7 bitince yorumu kaldır):
-        // await _isleme.Isle(belge);
+        
+        await _isleme.Isle(belge);
 
         return new YuklemeSonucu
         {
