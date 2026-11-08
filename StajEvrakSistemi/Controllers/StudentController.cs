@@ -26,7 +26,7 @@ public class StudentController : Controller
     // ---------------- Profil ----------------
 
     [HttpGet]
-    public async Task<IActionResult> Profil()   // TODO (Emirhan): Views/Student/Profil.cshtml
+    public async Task<IActionResult> Profil()
     {
         var ogrenci = await AktifOgrenci();
         return View(ogrenci);
@@ -45,7 +45,7 @@ public class StudentController : Controller
     // ---------------- Evrak yükleme (dosya + staj formu aynı sayfada) ----------------
 
     [HttpGet]
-    public IActionResult EvrakYukle() => View();   // TODO (Emirhan): Views/Student/EvrakYukle.cshtml
+    public IActionResult EvrakYukle() => View();
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -66,7 +66,7 @@ public class StudentController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> StajBilgisiDuzelt(int documentId)   // TODO (Emirhan): Views/Student/StajBilgisiDuzelt.cshtml
+    public async Task<IActionResult> StajBilgisiDuzelt(int documentId)
     {
         var detay = await KendiBelgesininDetayi(documentId);
         if (detay is null)
@@ -89,7 +89,7 @@ public class StudentController : Controller
     // ---------------- Belgeler ve rapor ----------------
 
     [HttpGet]
-    public async Task<IActionResult> Belgelerim()   // TODO (Emirhan): Views/Student/Belgelerim.cshtml
+    public async Task<IActionResult> Belgelerim()
     {
         var ogrenci = await AktifOgrenci();
         var belgeler = await _sorgu.OgrencininBelgeleri(ogrenci.Id);
@@ -97,7 +97,7 @@ public class StudentController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Rapor(int documentId)   // TODO (Emirhan): Views/Student/Rapor.cshtml
+    public async Task<IActionResult> Rapor(int documentId)
     {
         var detay = await KendiBelgesininDetayi(documentId);
         if (detay is null)

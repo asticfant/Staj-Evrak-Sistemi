@@ -85,6 +85,7 @@
                         var satirSinifi = h.Tur switch
                         {
                             IssueTuru.Uyusmazlik => "satir-uyusmazlik",
+                            IssueTuru.BosAlan => "satir-uyusmazlik",
                             IssueTuru.Okunamadi => "satir-okunamadi",
                             _ => ""
                         };
@@ -95,7 +96,7 @@
                                 else { <span class="deger-girilen">@h.GirilenDeger</span> }
                             </td>
                             <td class="text-nowrap">
-                                @if (string.IsNullOrWhiteSpace(h.OkunanDeger)) { <span class="deger-bos">okunamadı</span> }
+                                @if (string.IsNullOrWhiteSpace(h.OkunanDeger)) { <span class="deger-bos">@(h.Tur == IssueTuru.BosAlan ? "boş" : "okunamadı")</span> }
                                 else { <span class="deger-okunan">@h.OkunanDeger</span> }
                             </td>
                             <td>@h.Mesaj</td>

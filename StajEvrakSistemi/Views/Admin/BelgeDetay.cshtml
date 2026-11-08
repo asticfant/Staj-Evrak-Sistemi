@@ -107,7 +107,7 @@
                         <tbody>
                             @foreach (var h in Model.VeriSetiFarklari)
                             {
-                                <tr class="satir-uyusmazlik">
+                                <tr class="@(h.Tur == IssueTuru.Uyusmazlik ? "satir-uyusmazlik" : "satir-okunamadi")">
                                     <td class="fw-medium"><partial name="_AlanAdi" model="h.AlanAdi" /></td>
                                     <td class="text-nowrap">@(string.IsNullOrWhiteSpace(h.GirilenDeger) ? "–" : h.GirilenDeger)</td>
                                     <td class="text-nowrap">@(string.IsNullOrWhiteSpace(h.OkunanDeger) ? "–" : h.OkunanDeger)</td>
@@ -160,7 +160,10 @@
                 <label class="visually-hidden" for="durum">Yeni durum</label>
                 <div class="d-flex gap-2">
                     <select id="durum" name="durum" class="form-select">
-                        @foreach (var d in Enum.GetValues<DocumentDurum>())
+                        @* Tamamlandı seçeneği sadece onaylanmış (ya da zaten tamamlanmış) belgede çıkar.
+                           Kural sunucuda da var: DocumentService.DurumGuncelle. *@
+                        @foreach (var d in Enum.GetValues<DocumentDurum>()
+                            .Where(d => d != DocumentDurum.Tamamlandi || belge.Durum is DocumentDurum.Onaylandi or DocumentDurum.Tamamlandi))
                         {
                             <option value="@d" selected="@(belge.Durum == d)">@DurumMetni(d)</option>
                         }

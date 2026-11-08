@@ -166,9 +166,12 @@ public class OkuyucuSecici
 
     public IDocumentReader? Sec(DosyaTuru tur)
     {
+        // DocxReader henüz yazılmadığı için .docx şimdilik okunmuyor; null dönünce belge
+        // "finalde otomatik okunacak" notuyla İnceleniyor'da kalır ve admin elle inceler.
+        // DocxReader bitince aşağıdaki satır açılır:
+        //     DosyaTuru.Docx => _docx,
         return tur switch
         {
-            DosyaTuru.Docx => _docx,
             DosyaTuru.Pdf => _pdf,
             _ => null
         };
