@@ -1,0 +1,48 @@
+@startuml akis-giris
+title Akış Diyagramı 1 – Giriş ve Hesap Kilitleme
+skinparam defaultFontName Arial
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #1F2B4D
+skinparam ArrowColor #1F2B4D
+
+start
+:Kullanıcı adı veya e-posta + şifre girilir;
+if (Form alanları dolu mu?) then (hayır)
+  :Alan altında uyarı gösterilir;
+  stop
+endif
+:Kullanıcı aranır\n(girdide @ varsa e-posta, yoksa kullanıcı adı);
+if (Kullanıcı bulundu mu?) then (hayır)
+  :Başarısız deneme LoginLogs'a yazılır;
+  :"Kullanıcı adı veya şifre hatalı";
+  stop
+endif
+if (Hesap kilitli mi?\n(KilitBitisZamani > şimdi)) then (evet)
+  :Başarısız deneme loglanır;
+  :"Hesabınız 15 dakika kilitli"\n(şifreye bakılmaz);
+  stop
+endif
+if (Şifre doğru mu?\n(BCrypt hash karşılaştırması)) then (hayır)
+  :HataliGirisKaydet():\nsüresi dolmuş kilit varsa sayaç sıfırlanır,\nsayaç 1 artar;
+  if (Sayaç 5'e ulaştı mı?) then (evet)
+    :KilitBitisZamani = şimdi + 15 dk;
+    :Başarısız deneme loglanır;
+    :"Hesabınız 15 dakika kilitlendi";
+  else (hayır)
+    :Başarısız deneme loglanır;
+    :"Kullanıcı adı veya şifre hatalı";
+  endif
+  stop
+endif
+:SayaciSifirla();
+:Başarılı deneme loglanır;
+:Kimlik, kullanıcı adı ve rol claim olarak\nşifreli cookie'ye yazılır;
+if (Geçerli bir returnUrl var mı?) then (evet)
+  :Kullanıcının açmak istediği sayfaya git;
+elseif (Rol Admin mi?) then (evet)
+  :Admin / Belgeler sayfası;
+else (hayır)
+  :Öğrenci / Belgelerim sayfası;
+endif
+stop
+@enduml

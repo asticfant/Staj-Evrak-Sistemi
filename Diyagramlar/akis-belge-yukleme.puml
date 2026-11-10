@@ -1,0 +1,61 @@
+@startuml akis-belge-yukleme
+title Akış Diyagramı 2 – Ek-16 Yükleme, Okuma ve Karşılaştırma
+skinparam defaultFontName Arial
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #1F2B4D
+skinparam ArrowColor #1F2B4D
+
+|Tarayıcı|
+start
+:Öğrenci dosyayı seçer, staj formunu doldurur;
+if (site.js: uzantı izinli ve boyut ≤ 10 MB mı?\nBitiş ≥ başlangıç ve en az bir gün seçili mi?) then (hayır)
+  :Alanın altında anında uyarı,\nform gönderilmez;
+  stop
+endif
+:Form POST /Student/EvrakYukle\n(anti-forgery token ile);
+
+|Sunucu (DocumentService)|
+if (Öğrencinin profili tamam mı?) then (hayır)
+  :"Belge yüklemeden önce profil\nbilgilerinizi doldurun";
+  stop
+endif
+if (Dosya boş değil ve ≤ 10 MB mı?) then (hayır)
+  :Hata mesajı;
+  stop
+endif
+if (Uzantı .doc .docx .pdf .jpg .jpeg .png mi?) then (hayır)
+  :Hata mesajı;
+  stop
+endif
+if (İlk byte'lar (dosya imzası)\nuzantıyla uyuşuyor mu?) then (hayır)
+  :"Dosyanın içeriği uzantısıyla uyuşmuyor";
+  stop
+endif
+:Dosya uploads klasörüne GUID adıyla kaydedilir;
+:Document (Yüklendi) + StajBilgisi\nveritabanına kaydedilir;
+
+|Sunucu (BelgeIslemeService)|
+:IncelemeyeAl() → durum İnceleniyor;
+if (Dosya türü için okuyucu var mı?\n(vizede sadece PDF)) then (hayır)
+  :"Finalde otomatik okunacak" notu;
+  :Belge İnceleniyor'da kalır,\nadmin elle inceler;
+  stop
+endif
+:PdfReader: "Etiket: değer" satırları\nEk-16 alanlarına çevrilir;
+if (Okunabilir alan bulundu mu?) then (hayır)
+  :"Okunabilir metin bulunamadı"\n(taranmış belge) → İnceleniyor;
+  stop
+endif
+:Okunan alanlar kaydedilir;
+:ComparisonService.FormIleKarsilastir:\nher alan profil / staj formuyla karşılaştırılır\n(Türkçe harf, boşluk, tarih ve telefon biçimi sadeleştirilir);
+if (Uyuşmazlık ya da belgede boş alan var mı?) then (evet)
+  :HataliOlarakIsaretle() → Hatalı/Eksik;
+else (hayır)
+  :Onayla() → Onaylandı;
+endif
+:Sonuçlar kaydedilir;
+
+|Tarayıcı|
+:Rapor sayfasına yönlendirilir\n(girilen ve okunan değer yan yana);
+stop
+@enduml

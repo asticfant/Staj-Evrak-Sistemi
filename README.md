@@ -23,6 +23,19 @@ Programlama Laboratuvarı III – 2026-2027 Güz dönemi projesi.
 `TestVerileri/` klasöründe:
 - `OgrenciVeriSeti.xlsx` – 30 öğrencilik ana veri seti (admin paneline yüklenir)
 - `OgrenciVeriSeti_HataliTest.xlsx` – içe aktarma kontrollerini denemek için 8 hatalı satır (`TestNotu` sütunu hatayı açıklar)
+- `OgrenciVeriSeti_Ek16.xlsx` – test PDF'lerindeki 10 öğrencinin doğru bilgileri (öğrenci no 230000001–230000010); admin taraflı veri seti karşılaştırması bununla gösterilir
+- `Ek16_Validasyon_Test_Evraklari.zip` – 10 adet doldurulmuş Ek-16 PDF'i; bazılarında bilerek hata var (örn. 8: telefon boş, 9: ad "Cem123")
+
+### Sunum için demo senaryosu
+1. Admin (`admin` / `Admin123!`) → Veri seti → `OgrenciVeriSeti_Ek16.xlsx` yükle (10 eklendi).
+2. Öğrenci olarak kayıt ol; e-posta `ahmet@ogr.kou.edu.tr`. Profili 1. PDF'teki bilgilerle doldur
+   (Ahmet Yilmaz, 12345678901, T.C., 230000001, 01.01.2001, Yazılım Mühendisliği, +90 530 111 22 33, Ailesinden alıyor, önceki staj 20,
+   adres: Cumhuriyet Mah, Inonu Cad, Bina No: 1, Daire No: 1, Izmit, Kocaeli).
+3. `1_Ahmet_Yilmaz_Ek16.pdf` yükle; staj formunda teslim yılı 2025-2026, mühendis sayısı 4 (bilerek yanlış), bölüm Yazılım Mühendisliği → **Hatalı/Eksik**.
+4. Staj bilgisini düzelt, mühendis sayısı 3 → **Onaylandı**.
+5. Admin → belge detayı (veri seti farkı yok) → **Tamamla** → Tamamlananlar sekmesi.
+6. Aynı öğrenciyle `9_Cem123_Arslan_Ek16.pdf` yükle → çok sayıda uyuşmazlık; admin detayında veri setindeki "Cem Arslan" kaydıyla farklar.
+7. Güvenlik: adı `.pdf` yapılmış `.txt` dosyası reddedilir; öğrenci `/Admin/Belgeler` açınca 403; 5 yanlış şifrede hesap kilitlenir.
 
 ## Sayfalar
 | Rol | Sayfa | Adres |

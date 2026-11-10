@@ -30,6 +30,7 @@
 
 ## Diyagramlar
 `Diyagramlar/` klasöründe. `.puml` dosyası kaynak, `.png` rapora girecek resim.
+Rapor için: use case, ER, durum, 5 sınıf diyagramı ve 2 akış diyagramı (`akis-giris`, `akis-belge-yukleme`).
 Kod değişirse önce diyagram güncellenir.
 
 ## Emirhan
