@@ -26,7 +26,7 @@ public class AdminController : Controller
     // ---------------- Listeleme ----------------
 
     [HttpGet]
-    public async Task<IActionResult> Belgeler([FromQuery] BelgeFiltresi filtre)   // TODO (Emirhan): Views/Admin/Belgeler.cshtml (filtre formu + tablo)
+    public async Task<IActionResult> Belgeler([FromQuery] BelgeFiltresi filtre)
     {
         var belgeler = await _sorgu.Listele(filtre);
         ViewData["Filtre"] = filtre;
@@ -34,14 +34,14 @@ public class AdminController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Tamamlananlar()   // TODO (Emirhan): Views/Admin/Tamamlananlar.cshtml ("Tamamlandı" sekmesi)
+    public async Task<IActionResult> Tamamlananlar()
     {
         var belgeler = await _sorgu.TamamlananlariListele();
         return View(belgeler);
     }
 
     [HttpGet]
-    public async Task<IActionResult> BelgeDetay(int documentId)   // TODO (Emirhan): Views/Admin/BelgeDetay.cshtml (okunanlar + hatalar + veri seti farkları)
+    public async Task<IActionResult> BelgeDetay(int documentId)
     {
         var detay = await _sorgu.DetayGetir(documentId);
         if (detay is null)
@@ -58,8 +58,16 @@ public class AdminController : Controller
     public async Task<IActionResult> Tamamla(int documentId)
     {
         var admin = await AktifAdmin();
-        await _belgeler.Tamamla(documentId, admin);
-        TempData["Mesaj"] = "Belge tamamlandı.";
+        try
+        {
+            await _belgeler.Tamamla(documentId, admin);
+            TempData["Mesaj"] = "Belge tamamlandı.";
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException)
+        {
+            // Kural ihlali (örn. onaylanmamış belge) 500 hata sayfası yerine mesaj olarak gösterilir
+            TempData["Mesaj"] = ex.Message;
+        }
         return RedirectToAction(nameof(BelgeDetay), new { documentId });
     }
 
@@ -68,8 +76,15 @@ public class AdminController : Controller
     public async Task<IActionResult> DurumGuncelle(int documentId, DocumentDurum durum)
     {
         var admin = await AktifAdmin();
-        await _belgeler.DurumGuncelle(documentId, durum, admin);
-        TempData["Mesaj"] = "Belge durumu güncellendi.";
+        try
+        {
+            await _belgeler.DurumGuncelle(documentId, durum, admin);
+            TempData["Mesaj"] = "Belge durumu güncellendi.";
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException)
+        {
+            TempData["Mesaj"] = ex.Message;
+        }
         return RedirectToAction(nameof(BelgeDetay), new { documentId });
     }
 
@@ -78,15 +93,22 @@ public class AdminController : Controller
     public async Task<IActionResult> BelgeSil(int documentId)
     {
         var admin = await AktifAdmin();
-        await _belgeler.Sil(documentId, admin);
-        TempData["Mesaj"] = "Belge silindi.";
+        try
+        {
+            await _belgeler.Sil(documentId, admin);
+            TempData["Mesaj"] = "Belge silindi.";
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or KeyNotFoundException)
+        {
+            TempData["Mesaj"] = ex.Message;
+        }
         return RedirectToAction(nameof(Belgeler));
     }
 
     // ---------------- Veri seti ----------------
 
     [HttpGet]
-    public IActionResult VeriSetiYukle() => View();   // TODO (Emirhan): Views/Admin/VeriSetiYukle.cshtml
+    public IActionResult VeriSetiYukle() => View();
 
     [HttpPost]
     [ValidateAntiForgeryToken]

@@ -17,7 +17,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Kayit() => View();   // TODO (Emirhan): Views/Account/Kayit.cshtml
+    public IActionResult Kayit() => View();
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -40,7 +40,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Giris(string? returnUrl = null)   // TODO (Emirhan): Views/Account/Giris.cshtml
+    public IActionResult Giris(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
         return View();
@@ -83,7 +83,7 @@ public class AccountController : Controller
 
     /// <summary>Yanlış role sahip kullanıcı buraya yönlendirilir (Program.cs → AccessDeniedPath).</summary>
     [HttpGet]
-    public IActionResult ErisimEngellendi()   // TODO (Emirhan): Views/Account/ErisimEngellendi.cshtml (+ girişe dön linki)
+    public IActionResult ErisimEngellendi()
     {
         Response.StatusCode = StatusCodes.Status403Forbidden;
         return View();

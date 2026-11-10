@@ -96,8 +96,7 @@ public class DocumentService
         await _db.SaveChangesAsync();
 
         // 4) Belgeyi işle (oku → karşılaştır → durumu belirle)
-        // TODO (B7 bitince yorumu kaldır):
-         await _isleme.Isle(belge);
+        await _isleme.Isle(belge);
 
         return new YuklemeSonucu
         {
@@ -173,6 +172,15 @@ public class DocumentService
     public async Task DurumGuncelle(int documentId, DocumentDurum yeniDurum, User yapan)
     {
         var belge = await BelgeyiGetir(documentId);
+
+        // Elle değiştirmede de "sadece onaylanan belge tamamlanır" kuralı geçerli.
+        // Admin okunamayan bir belgeyi inceleyip önce Onaylandı yapar, sonra Tamamla'ya basar.
+        // Tamamlandı belgeyi geri almak (forum cevabı) serbest.
+        if (yeniDurum == DocumentDurum.Tamamlandi && belge.Durum is not (DocumentDurum.Onaylandi or DocumentDurum.Tamamlandi))
+        {
+            throw new InvalidOperationException("Sadece onaylanmış belge tamamlanabilir.");
+        }
+
         belge.DurumAta(yeniDurum, yapan.Rol); // Admin değilse Document hata fırlatır
         await _db.SaveChangesAsync();
     }
