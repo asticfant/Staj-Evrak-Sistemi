@@ -15,6 +15,20 @@ public enum DocumentDurum
     Tamamlandi
 }
 
+/// <summary>Durumların kullanıcıya gösterilen adları (hata mesajlarında enum adı görünmesin diye).</summary>
+public static class DocumentDurumAdlari
+{
+    public static string GorunenAd(this DocumentDurum durum) => durum switch
+    {
+        DocumentDurum.Yuklendi => "Yüklendi",
+        DocumentDurum.Inceleniyor => "İnceleniyor",
+        DocumentDurum.HataliEksik => "Hatalı / Eksik",
+        DocumentDurum.Onaylandi => "Onaylandı",
+        DocumentDurum.Tamamlandi => "Tamamlandı",
+        _ => durum.ToString()
+    };
+}
+
 public enum DosyaTuru
 {
     Doc,
