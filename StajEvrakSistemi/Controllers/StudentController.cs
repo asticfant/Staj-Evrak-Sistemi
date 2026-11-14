@@ -73,6 +73,13 @@ public class StudentController : Controller
         {
             return NotFound();
         }
+
+        // Sadece Hatalı/Eksik belge düzeltilebilir; diğerlerinde form hiç açılmaz.
+        if (detay.Belge.Durum != DocumentDurum.HataliEksik)
+        {
+            TempData["Mesaj"] = $"\"{detay.Belge.Durum.GorunenAd()}\" durumundaki belgenin bilgileri düzeltilemez.";
+            return RedirectToAction(nameof(Rapor), new { documentId });
+        }
         return View(detay.StajBilgisi);
     }
 

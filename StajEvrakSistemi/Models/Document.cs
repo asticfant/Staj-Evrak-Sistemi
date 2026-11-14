@@ -80,7 +80,7 @@ public class Document
     {
         if (!IzinliGecisler[Durum].Contains(yeni))
         {
-            throw new InvalidOperationException($"{Durum} durumundan {yeni} durumuna geçilemez.");
+            throw new InvalidOperationException($"\"{Durum.GorunenAd()}\" durumundaki belge \"{yeni.GorunenAd()}\" durumuna geçirilemez.");
         }
         Durum = yeni;
     }
