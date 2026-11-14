@@ -36,12 +36,12 @@ endif
 
 |Sunucu (BelgeIslemeService)|
 :IncelemeyeAl() → durum İnceleniyor;
-if (Dosya türü için okuyucu var mı?\n(vizede sadece PDF)) then (hayır)
+if (Dosya türü için okuyucu var mı?\n(vizede PDF ve DOCX)) then (hayır)
   :"Finalde otomatik okunacak" notu;
   :Belge İnceleniyor'da kalır,\nadmin elle inceler;
   stop
 endif
-:PdfReader: "Etiket: değer" satırları\nEk-16 alanlarına çevrilir;
+:PdfReader / DocxReader: "Etiket: değer"\nsatırları Ek-16 alanlarına çevrilir;
 if (Okunabilir alan bulundu mu?) then (hayır)
   :"Okunabilir metin bulunamadı"\n(taranmış belge) → İnceleniyor;
   stop

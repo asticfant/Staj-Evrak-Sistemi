@@ -27,15 +27,26 @@ public class Student : User
     {
     }
 
-    public bool YabanciMi()
+    /// <summary>Öğrenci girişten sonra kendi belgelerine gider.</summary>
+    public override string AnaSayfa() => "/Student/Belgelerim";
+
+    public bool YabanciMi() => YabanciUyrukMu(Uyruk);
+
+    /// <summary>
+    /// Uyruk metni T.C. değilse true. "T.C.", "TC", "Türkiye", "Turkiye", "Türk" T.C. sayılır.
+    /// Static: profil formu ve Excel aktarımı da (henüz Student nesnesi yokken) kullanır.
+    /// </summary>
+    public static bool YabanciUyrukMu(string? uyruk)
     {
-        if (string.IsNullOrWhiteSpace(Uyruk))
+        if (string.IsNullOrWhiteSpace(uyruk))
         {
             return false;
         }
 
-        var uyruk = Uyruk.Trim().ToUpper(new System.Globalization.CultureInfo("tr-TR"));
-        return uyruk != "T.C." && uyruk != "TC" && uyruk != "TÜRKİYE";
+        var sade = uyruk.Trim().ToUpper(new System.Globalization.CultureInfo("tr-TR"))
+            .Replace('İ', 'I').Replace('Ü', 'U')
+            .Replace(".", "").Replace(" ", "");
+        return sade != "TC" && sade != "TURKIYE" && sade != "TURK";
     }
 
     public bool ProfilTamamMi()

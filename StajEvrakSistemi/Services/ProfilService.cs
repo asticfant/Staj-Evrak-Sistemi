@@ -1,12 +1,16 @@
 using StajEvrakSistemi.Data;
 using StajEvrakSistemi.Dtos;
 using StajEvrakSistemi.Models;
+using StajEvrakSistemi.Validators;
 
 namespace StajEvrakSistemi.Services;
 
 /// <summary>Öğrencinin kişisel bilgilerini girdiği / güncellediği profil.</summary>
 public class ProfilService
 {
+    private static readonly IFieldValidator Telefon = new TelefonValidator();
+    private static readonly IFieldValidator Adres = new AdresValidator();
+
     private readonly AppDbContext _db;
 
     public ProfilService(AppDbContext db)
@@ -22,8 +26,8 @@ public class ProfilService
 
     /// <summary>
     /// Profil formundaki bilgileri öğrenciye kaydeder.
-    /// Vizede sadece zorunlu alanların boş olup olmadığı kontrol edilir;
-    /// format kontrolleri (TC, telefon...) final kapsamında.
+    /// Zorunlu alanlar boş olmamalı; kimlik no (T.C./yabancı), telefon ve adres
+    /// Validators klasöründeki kurallara uymalı.
     /// </summary>
     public async Task<IslemSonucu> ProfilGuncelle(int studentId, ProfilFormu form)
     {
@@ -47,7 +51,21 @@ public class ProfilService
             return IslemSonucu.Hata("Lütfen tüm zorunlu alanları doldurun");
         }
 
-        // 3) Formdaki bilgileri öğrenciye kopyala
+        // 3) Biçim kontrolleri (Gereksinim 6.1 / 6.2). Kimlik kuralı uyruğa göre seçilir.
+        var hatalar = new[]
+            {
+                KimlikValidatorSecici.Sec(form.Uyruk).Validate(form.TcKimlikNo),
+                Telefon.Validate(form.Telefon),
+                Adres.Validate(form.Adres)
+            }
+            .Where(h => h != null)
+            .ToList();
+        if (hatalar.Count > 0)
+        {
+            return IslemSonucu.Hata("Profil kaydedilmedi: " + string.Join("; ", hatalar));
+        }
+
+        // 4) Formdaki bilgileri öğrenciye kopyala
         ogrenci.AdSoyad = form.AdSoyad.Trim();
         ogrenci.TcKimlikNo = form.TcKimlikNo.Trim();
         ogrenci.Uyruk = form.Uyruk.Trim();
@@ -59,7 +77,7 @@ public class ProfilService
         ogrenci.SaglikYardimiStatusu = form.SaglikYardimiStatusu?.Trim();
         ogrenci.OncekiStajGunSayisi = form.OncekiStajGunSayisi;
 
-        // 4) Kaydet (öğrenci zaten tabloda, EF değişiklikleri kendisi izliyor)
+        // 5) Kaydet (öğrenci zaten tabloda, EF değişiklikleri kendisi izliyor)
         await _db.SaveChangesAsync();
         return IslemSonucu.Ok("Profil kaydedildi");
     }

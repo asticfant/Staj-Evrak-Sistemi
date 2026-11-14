@@ -67,9 +67,9 @@ public class AccountController : Controller
             return Redirect(returnUrl);
         }
 
-        return sonuc.Kullanici.Rol == UserRole.Admin
-            ? RedirectToAction("Belgeler", "Admin")
-            : RedirectToAction("Belgelerim", "Student");
+        // Çok biçimlilik: Student ve Admin AnaSayfa()'yı kendine göre override eder.
+        // Hangi rol olduğunu burada sormaya gerek yok.
+        return LocalRedirect(sonuc.Kullanici.AnaSayfa());
     }
 
     [HttpPost]
@@ -85,7 +85,11 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult ErisimEngellendi()
     {
+        // Gereksinim 4.2: yetkisiz istek 403 döner ve giriş sayfasına yönlendirilir.
+        // Refresh başlığı tarayıcıyı 5 saniye sonra giriş sayfasına götürür;
+        // bu sürede kullanıcı neden yönlendirildiğini okuyabilir.
         Response.StatusCode = StatusCodes.Status403Forbidden;
+        Response.Headers.Append("Refresh", $"5;url={Url.Action(nameof(Giris))}");
         return View();
     }
 }

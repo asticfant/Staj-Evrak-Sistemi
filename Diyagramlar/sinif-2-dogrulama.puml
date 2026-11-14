@@ -31,8 +31,19 @@ package "Readers" {
   interface IDocumentReader {
     + Oku(dosyaYolu : string) : Dictionary<string,string>
   }
-  class DocxReader
-  class PdfReader
+  abstract class EtiketliOkuyucu {
+    + Oku(dosyaYolu : string) : Dictionary<string,string>
+    # {abstract} SatirlariOku(dosyaYolu : string) : IEnumerable<string>
+    - {static} EtiketiSadelestir(etiket : string) : string
+  }
+  class DocxReader {
+    # SatirlariOku(dosyaYolu : string) : IEnumerable<string>
+    - TabloSatiriniOku(satir) : IEnumerable<string>
+  }
+  class PdfReader {
+    # SatirlariOku(dosyaYolu : string) : IEnumerable<string>
+    - Satirlar(sayfa) : IEnumerable<string>
+  }
   class OcrReader <<planlanan>>
   class Ek16Alanlari <<static>> {
     + AdSoyad, TcKimlikNo, OgrenciNo, ...
@@ -43,19 +54,19 @@ package "Readers" {
   }
 }
 
-package "Validators (Final – Bölüm 6)" {
-  interface IFieldValidator <<planlanan>> {
-    + Validate(deger : string) : string
+package "Validators (alan kuralları vizede, belge kuralları final – Bölüm 6)" {
+  interface IFieldValidator {
+    + Validate(deger : string) : string?
   }
-  class TcKimlikValidator <<planlanan>>
-  class YabanciKimlikValidator <<planlanan>>
-  class TelefonValidator <<planlanan>>
-  class EmailValidator <<planlanan>>
-  class AdresValidator <<planlanan>>
+  class TcKimlikValidator
+  class YabanciKimlikValidator
+  class TelefonValidator
+  class EmailValidator
+  class AdresValidator
   class ZorunluAlanValidator <<planlanan>>
   class GoogleFormUrlValidator <<planlanan>>
-  class KimlikValidatorSecici <<planlanan>> {
-    + Sec(student : Student) : IFieldValidator
+  class KimlikValidatorSecici <<static>> {
+    + {static} Sec(uyruk : string) : IFieldValidator
   }
 
   interface IBelgeKurali <<planlanan>> {
@@ -67,8 +78,9 @@ package "Validators (Final – Bölüm 6)" {
   class MuhendisSayisiKurali <<planlanan>>
 }
 
-IDocumentReader <|.. DocxReader
-IDocumentReader <|.. PdfReader
+IDocumentReader <|.. EtiketliOkuyucu
+EtiketliOkuyucu <|-- DocxReader
+EtiketliOkuyucu <|-- PdfReader
 IDocumentReader <|.. OcrReader
 OkuyucuSecici ..> IDocumentReader
 
@@ -100,11 +112,16 @@ ComparisonService ..> StajBilgisi
 ComparisonService ..> VeriSetiKaydi
 ComparisonService ..> ValidationIssue
 ComparisonService ..> Ek16Alanlari : alan adları
-DocxReader ..> Ek16Alanlari
+EtiketliOkuyucu ..> Ek16Alanlari
 
 note bottom of PdfReader
-  Vizede metin tabanlı PDF (PdfPig).
-  Taranmış PDF / JPEG / PNG → OcrReader (final).
+  Vizede metin tabanlı PDF (PdfPig) ve .docx (OpenXml).
+  Taranmış PDF / JPEG / PNG / .doc → OcrReader (final).
+end note
+
+note top of EtiketliOkuyucu
+  Template Method: Oku() ortak iskelet,
+  SatirlariOku() her alt sınıfta override edilir.
 end note
 
 note top of ComparisonService

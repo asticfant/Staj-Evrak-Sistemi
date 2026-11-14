@@ -45,6 +45,7 @@ package "Models" {
     + KilitliMi() : bool
     + HataliGirisKaydet()
     + SayaciSifirla()
+    + {abstract} AnaSayfa() : string
   }
 
   class Student {
@@ -59,11 +60,15 @@ package "Models" {
     + SaglikYardimiStatusu : string
     + OncekiStajGunSayisi : int
     + GoogleFormUrl : string?
+    + AnaSayfa() : string <<override>>
     + YabanciMi() : bool
+    + {static} YabanciUyrukMu(uyruk : string) : bool
     + ProfilTamamMi() : bool
   }
 
-  class Admin
+  class Admin {
+    + AnaSayfa() : string <<override>>
+  }
 
   class Document {
     + Id : int

@@ -25,6 +25,7 @@ Programlama Laboratuvarı III – 2026-2027 Güz dönemi projesi.
 - `OgrenciVeriSeti_HataliTest.xlsx` – içe aktarma kontrollerini denemek için 8 hatalı satır (`TestNotu` sütunu hatayı açıklar)
 - `OgrenciVeriSeti_Ek16.xlsx` – test PDF'lerindeki 10 öğrencinin doğru bilgileri (öğrenci no 230000001–230000010); admin taraflı veri seti karşılaştırması bununla gösterilir
 - `Ek16_Validasyon_Test_Evraklari.zip` – 10 adet doldurulmuş Ek-16 PDF'i; bazılarında bilerek hata var (örn. 8: telefon boş, 9: ad "Cem123")
+- `11_Ahmet_Yilmaz_Ek16.docx` – 1. PDF ile aynı bilgiler, Word tablosu biçiminde (DocxReader demosu; Türkçe karakterli etiketler, tablo + paragraf karışık)
 
 ### Sunum için demo senaryosu
 1. Admin (`admin` / `Admin123!`) → Veri seti → `OgrenciVeriSeti_Ek16.xlsx` yükle (10 eklendi).
@@ -34,8 +35,10 @@ Programlama Laboratuvarı III – 2026-2027 Güz dönemi projesi.
 3. `1_Ahmet_Yilmaz_Ek16.pdf` yükle; staj formunda teslim yılı 2025-2026, mühendis sayısı 4 (bilerek yanlış), bölüm Yazılım Mühendisliği → **Hatalı/Eksik**.
 4. Staj bilgisini düzelt, mühendis sayısı 3 → **Onaylandı**.
 5. Admin → belge detayı (veri seti farkı yok) → **Tamamla** → Tamamlananlar sekmesi.
-6. Aynı öğrenciyle `9_Cem123_Arslan_Ek16.pdf` yükle → çok sayıda uyuşmazlık; admin detayında veri setindeki "Cem Arslan" kaydıyla farklar.
-7. Güvenlik: adı `.pdf` yapılmış `.txt` dosyası reddedilir; öğrenci `/Admin/Belgeler` açınca 403; 5 yanlış şifrede hesap kilitlenir.
+6. Aynı öğrenciyle `11_Ahmet_Yilmaz_Ek16.docx` yükle, mühendis sayısı 3 → **Onaylandı** (Word belgesi de okunuyor; aynı `Oku()` çağrısı, farklı sınıf).
+7. Aynı öğrenciyle `9_Cem123_Arslan_Ek16.pdf` yükle → çok sayıda uyuşmazlık; admin detayında veri setindeki "Cem Arslan" kaydıyla farklar.
+8. Güvenlik: adı `.pdf` yapılmış `.txt` dosyası reddedilir; öğrenci `/Admin/Belgeler` açınca 403 ve 5 sn sonra giriş sayfası; 5 yanlış şifrede hesap kilitlenir.
+9. Profil: telefonu `0530...` ya da TC'yi `0` ile başlayan yazınca profil kaydedilmez, sebebi yazılır.
 
 ## Sayfalar
 | Rol | Sayfa | Adres |
@@ -57,6 +60,7 @@ Yazı tipleri (IBM Plex) ve Bootstrap Icons `wwwroot/lib` içinde; internet olma
 | `Data` | `AppDbContext`, `DbSeeder` |
 | `Services` | İş mantığı (giriş, belge, karşılaştırma, veri seti) |
 | `Readers` | Belge okuyucular (Word, PDF, finalde OCR) |
+| `Validators` | Alan biçim kuralları (TC / yabancı kimlik, telefon, e-posta, adres) |
 | `Dtos` | Form ve sonuç nesneleri |
 | `Controllers` / `Views` | Sayfalar |
 | `../Diyagramlar` | UML, ER, durum ve use case diyagramları |

@@ -39,10 +39,8 @@ endif
 :Kimlik, kullanıcı adı ve rol claim olarak\nşifreli cookie'ye yazılır;
 if (Geçerli bir returnUrl var mı?) then (evet)
   :Kullanıcının açmak istediği sayfaya git;
-elseif (Rol Admin mi?) then (evet)
-  :Admin / Belgeler sayfası;
 else (hayır)
-  :Öğrenci / Belgelerim sayfası;
+  :Kullanıcının AnaSayfa() adresine git\n(çok biçimlilik: Student → Belgelerim,\nAdmin → Belgeler);
 endif
 stop
 @enduml
