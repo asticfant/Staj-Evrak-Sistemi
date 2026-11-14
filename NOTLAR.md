@@ -20,6 +20,16 @@
 - **Tamamlandı belge:** Öğrenci değiştiremez/silemez, **admin güncelleyip silebilir** (hocanın cevabı).
 - **Okunamayan belge türü (vizede resim):** Belge "İnceleniyor"da kalır, admin elle inceler.
 
+## Vize öncesi düzeltmeler (14.11)
+- **Çok biçimlilik güçlendirildi:**
+  - `User.AnaSayfa()` abstract; `Student` ve `Admin` override eder. Girişten sonra yönlendirme `Rol == Admin ?` yerine `AnaSayfa()` ile.
+  - `DocxReader` yazıldı. PDF ve DOCX okuyucular ortak `EtiketliOkuyucu` üst sınıfından türer (Template Method: `Oku()` ortak, `SatirlariOku()` override).
+- **403:** Erişim engellendi sayfası 403 döner ve 5 saniye sonra giriş sayfasına yönlendirir (Gereksinim 4.2).
+- **Alan kuralları (Bölüm 6.1 / 6.2) vizeye çekildi:** `Validators/` klasöründe `IFieldValidator` ve gerçeklemeleri (TC, yabancı kimlik, telefon, e-posta, adres). Profil formu ve Excel aktarımı aynı sınıfları kullanır. Adres artık sırayı ve İlçe/İl'i de kontrol eder. Belge kuralları (`IBelgeKurali`: teslim tarihi, staj günü, öğretim yılı, mühendis sayısı) hâlâ final.
+- **Models değişikliği migration gerektirmez** (sadece metot eklendi, sütun yok).
+- **Sunumda söylenecek:** Vizede okunan belgeler bizim test şablonumuzdaki "Etiket: değer" biçimindeki metin tabanlı PDF/DOCX. Resmi taranmış Ek-16 → final (OCR).
+- **Çıkış sorusu gelirse:** Cookie silinir; kopyalanmış bir cookie süresi (2 saat) dolana kadar geçerli kalır. Finalde kullanıcıya SecurityStamp eklenip her istekte kontrol edilebilir.
+
 ## Görev Dağılımı
 - **Mevlüt:** Diyagramlar, Models + AppDbContext, AuthService, ProfilService, DocumentService, BelgeSorguService
 - **Muhammed:** DocxReader, PdfReader, ComparisonService (Normalize dahil), DatasetImportService, BelgeIslemeService

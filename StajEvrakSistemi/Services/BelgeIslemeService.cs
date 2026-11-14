@@ -80,7 +80,7 @@ public class BelgeIslemeService
             {
                 AlanAdi = "Belge",
                 Tur = IssueTuru.Okunamadi,
-                Mesaj = "Belgede okunabilir metin bulunamadı (taranmış belge olabilir)"
+                Mesaj = "Belgede Ek-16 alanı bulunamadı (taranmış belge ya da farklı bir şablon olabilir)"
             });
             await _db.SaveChangesAsync();
             return;

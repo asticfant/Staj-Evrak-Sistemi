@@ -12,6 +12,11 @@ package "Models (detayı Diyagram 1'de)" {
   class VeriSetiKaydi <<ref>>
 }
 
+package "Validators (detayı Diyagram 2'de)" {
+  interface IFieldValidator <<ref>>
+  class KimlikValidatorSecici <<ref>>
+}
+
 package "Services" {
   class AuthService {
     + KayitOl(kullaniciAdi : string, email : string, sifre : string, sifreTekrar : string) : IslemSonucu
@@ -83,9 +88,13 @@ AuthService ..> LoginLog
 ProfilService ..> Student
 ProfilService ..> ProfilFormu
 ProfilService ..> IslemSonucu
+ProfilService ..> IFieldValidator : TC / telefon / adres
+ProfilService ..> KimlikValidatorSecici
 
 DatasetImportService ..> VeriSetiKaydi
 DatasetImportService ..> ImportSonucu
+DatasetImportService ..> IFieldValidator : TC / telefon / e-posta / adres
+DatasetImportService ..> KimlikValidatorSecici
 
 DbSeeder ..> IPasswordHasher
 DbSeeder ..> Admin

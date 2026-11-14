@@ -30,6 +30,13 @@ public abstract class User
         Rol = rol;
     }
 
+    /// <summary>
+    /// Giriş yaptıktan sonra kullanıcının gideceği sayfa.
+    /// Her alt sınıf kendi sayfasını söyler (abstract + override = çok biçimlilik).
+    /// Böylece giriş kodunda "rol Admin mi?" diye if/else yazmaya gerek kalmaz.
+    /// </summary>
+    public abstract string AnaSayfa();
+
     public bool KilitliMi()
     {
         return KilitBitisZamani.HasValue && KilitBitisZamani.Value > DateTime.UtcNow;

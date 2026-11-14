@@ -16,27 +16,14 @@ public interface IDocumentReader
 }
 
 /// <summary>
-/// Bilgisayarda doldurulmuş .docx Ek-16'yı okur (DocumentFormat.OpenXml).
+/// "Etiket: değer" satırlarından oluşan belgeler için ortak üst sınıf (soyutlama + kalıtım).
+/// Satırları ayrıştırma ve etiketi Ek-16 alanına eşleme burada BİR KEZ yazılır.
+/// Alt sınıflar sadece belgeden satırları nasıl çıkaracağını söyler (SatirlariOku'yu override eder).
+/// Tasarım kalıbı: Template Method – Oku() iskelet, SatirlariOku() değişen adım.
 /// </summary>
-public class DocxReader : IDocumentReader
+public abstract class EtiketliOkuyucu : IDocumentReader
 {
-    public Dictionary<string, string> Oku(string dosyaYolu)
-    {
-        // TODO (Muhammed):
-        // using var doc = WordprocessingDocument.Open(dosyaYolu, false);
-        // Ek-16 tablolarındaki etiket hücresinin yanındaki değeri oku,
-        // anahtar olarak Ek16Alanlari sabitlerini kullan.
-        throw new NotImplementedException();
-    }
-}
-
-/// <summary>
-/// Metin tabanlı PDF'i okur (PdfPig). Test PDF'lerinde her satır "Etiket: değer" biçimindedir.
-/// Taranmış (resim) PDF'ler OCR gerektirir -> final.
-/// </summary>
-public class PdfReader : IDocumentReader
-{
-    // PDF'teki etiket -> Ek16Alanlari anahtarı.
+    // Belgedeki etiket -> Ek16Alanlari anahtarı.
     // Etiketler karşılaştırılmadan önce EtiketiSadelestir'den geçer (Türkçe karakter / büyük-küçük harf farkı önemsiz).
     private static readonly Dictionary<string, string> EtiketHaritasi = new()
     {
@@ -67,34 +54,64 @@ public class PdfReader : IDocumentReader
         ["ISYERI E POSTA"] = Ek16Alanlari.IsyeriEmail,
     };
 
+    /// <summary>Belgedeki metni satır satır döndürür. Her alt sınıf kendi dosya biçimine göre yazar.</summary>
+    protected abstract IEnumerable<string> SatirlariOku(string dosyaYolu);
+
+    /// <summary>Ortak iskelet: satırları al, "Etiket: değer" olanları Ek-16 alanlarına çevir.</summary>
     public Dictionary<string, string> Oku(string dosyaYolu)
     {
         var sonuc = new Dictionary<string, string>();
 
+        foreach (var satir in SatirlariOku(dosyaYolu))
+        {
+            var ikiNokta = satir.IndexOf(':');
+            if (ikiNokta <= 0)
+            {
+                continue;
+            }
+
+            var etiket = EtiketiSadelestir(satir[..ikiNokta]);
+            var deger = satir[(ikiNokta + 1)..].Trim();
+
+            // Aynı alan iki kez geçerse ilk dolu değer kalır
+            if (EtiketHaritasi.TryGetValue(etiket, out var anahtar)
+                && (!sonuc.TryGetValue(anahtar, out var eski) || string.IsNullOrWhiteSpace(eski)))
+            {
+                sonuc[anahtar] = deger;
+            }
+        }
+
+        return sonuc;
+    }
+
+    private static string EtiketiSadelestir(string etiket)
+    {
+        var buyuk = etiket.Trim().ToUpper(new System.Globalization.CultureInfo("tr-TR"))
+            .Replace('İ', 'I').Replace('Ş', 'S').Replace('Ğ', 'G')
+            .Replace('Ü', 'U').Replace('Ö', 'O').Replace('Ç', 'C')
+            .Replace('Â', 'A').Replace('Î', 'I').Replace('Û', 'U')   // "İkametgâh"
+            .Replace('-', ' ').Replace('.', ' ');
+        return System.Text.RegularExpressions.Regex.Replace(buyuk, @"\s+", " ").Trim();
+    }
+}
+
+/// <summary>
+/// Metin tabanlı PDF'i okur (PdfPig). Test PDF'lerinde her satır "Etiket: değer" biçimindedir.
+/// Taranmış (resim) PDF'ler OCR gerektirir -> final.
+/// </summary>
+public class PdfReader : EtiketliOkuyucu
+{
+    /// <summary>Her sayfadaki kelimeleri satırlara toplar.</summary>
+    protected override IEnumerable<string> SatirlariOku(string dosyaYolu)
+    {
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(dosyaYolu);
         foreach (var sayfa in pdf.GetPages())
         {
             foreach (var satir in Satirlar(sayfa))
             {
-                var ikiNokta = satir.IndexOf(':');
-                if (ikiNokta <= 0)
-                {
-                    continue;
-                }
-
-                var etiket = EtiketiSadelestir(satir[..ikiNokta]);
-                var deger = satir[(ikiNokta + 1)..].Trim();
-
-                // Aynı alan iki kez geçerse ilk dolu değer kalır
-                if (EtiketHaritasi.TryGetValue(etiket, out var anahtar)
-                    && (!sonuc.TryGetValue(anahtar, out var eski) || string.IsNullOrWhiteSpace(eski)))
-                {
-                    sonuc[anahtar] = deger;
-                }
+                yield return satir;
             }
         }
-
-        return sonuc;
     }
 
     /// <summary>Kelimeleri dikey konuma göre satırlara, satır içinde soldan sağa dizer.</summary>
@@ -116,6 +133,7 @@ public class PdfReader : IDocumentReader
                 yield return string.Join(" ", satir.OrderBy(k => k.BoundingBox.Left).Select(k => k.Text));
                 satir.Clear();
             }
+
             if (satir.Count == 0)
             {
                 satirY = kelime.BoundingBox.Bottom;
@@ -127,15 +145,6 @@ public class PdfReader : IDocumentReader
         {
             yield return string.Join(" ", satir.OrderBy(k => k.BoundingBox.Left).Select(k => k.Text));
         }
-    }
-
-    private static string EtiketiSadelestir(string etiket)
-    {
-        var buyuk = etiket.Trim().ToUpper(new System.Globalization.CultureInfo("tr-TR"))
-            .Replace('İ', 'I').Replace('Ş', 'S').Replace('Ğ', 'G')
-            .Replace('Ü', 'U').Replace('Ö', 'O').Replace('Ç', 'C')
-            .Replace('-', ' ').Replace('.', ' ');
-        return System.Text.RegularExpressions.Regex.Replace(buyuk, @"\s+", " ").Trim();
     }
 }
 
@@ -152,6 +161,7 @@ public class OcrReader : IDocumentReader
 
 /// <summary>
 /// Dosya türüne göre doğru okuyucuyu seçer. Okunamayan türlerde null döner.
+/// Dönüş tipi arayüzdür; çağıran taraf hangi okuyucuyla çalıştığını bilmez (çok biçimlilik).
 /// </summary>
 public class OkuyucuSecici
 {
@@ -166,13 +176,12 @@ public class OkuyucuSecici
 
     public IDocumentReader? Sec(DosyaTuru tur)
     {
-        // DocxReader henüz yazılmadığı için .docx şimdilik okunmuyor; null dönünce belge
+        // .doc (eski Word), JPEG ve PNG vizede okunmaz; null dönünce belge
         // "finalde otomatik okunacak" notuyla İnceleniyor'da kalır ve admin elle inceler.
-        // DocxReader bitince aşağıdaki satır açılır:
-        //     DosyaTuru.Docx => _docx,
         return tur switch
         {
             DosyaTuru.Pdf => _pdf,
+            DosyaTuru.Docx => _docx,
             _ => null
         };
     }

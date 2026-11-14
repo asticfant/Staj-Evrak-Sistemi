@@ -4,6 +4,7 @@ using ClosedXML.Excel;
 using StajEvrakSistemi.Data;
 using StajEvrakSistemi.Dtos;
 using StajEvrakSistemi.Models;
+using StajEvrakSistemi.Validators;
 
 namespace StajEvrakSistemi.Services;
 
@@ -22,6 +23,10 @@ public class DatasetImportService
     };
 
     private static readonly string[] TarihBicimleri = { "dd.MM.yyyy", "d.M.yyyy", "dd/MM/yyyy", "yyyy-MM-dd" };
+
+    private static readonly IFieldValidator Telefon = new TelefonValidator();
+    private static readonly IFieldValidator Email = new EmailValidator();
+    private static readonly IFieldValidator Adres = new AdresValidator();
 
     private readonly AppDbContext _db;
 
@@ -131,23 +136,22 @@ public class DatasetImportService
         if (!Regex.IsMatch(ogrenciNo, @"^\d+$")) hatalar.Add("öğrenci no boş veya rakam dışı karakter içeriyor");
         if (adSoyad.Length == 0) hatalar.Add("ad soyad boş");
 
-        var yabanci = uyruk.Length > 0 && !Regex.IsMatch(uyruk.ToUpperInvariant(), @"^(T\.?C\.?|TÜRKİYE|TURKIYE)$");
-        if (!Regex.IsMatch(tc, @"^\d{11}$")) hatalar.Add("kimlik no 11 haneli olmalı");
-        else if (tc[0] == '0') hatalar.Add("kimlik no 0 ile başlayamaz");
-        else if (yabanci && !tc.StartsWith("99")) hatalar.Add("yabancı uyruklu öğrencinin kimlik numarası 99 ile başlamalı");
-
-        if (!Regex.IsMatch(telefon, @"^\+90 ?\d{3} ?\d{3} ?\d{2} ?\d{2}$")) hatalar.Add("telefon +90 5xx xxx xx xx biçiminde olmalı");
-        if (email.Length == 0) hatalar.Add("e-posta boş");
-        else if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) hatalar.Add("e-posta geçersiz");
-
-        var a = adres.ToUpper(new CultureInfo("tr-TR")).Replace('İ', 'I');
-        var acikAdres = a.Contains("MAH")
-            && (a.Contains("CAD") || a.Contains("SOK"))
-            && a.Contains("BINA NO")
-            && a.Contains("DAIRE NO");
-        if (!acikAdres)
+        // Biçim kuralları Validators klasöründe; profil formu da aynılarını kullanır.
+        // Kimlik doğrulayıcısı uyruğa göre seçilir (T.C. / yabancı).
+        var kontroller = new (IFieldValidator Kural, string Deger)[]
         {
-            hatalar.Add("adres açık adres değil (Mahalle, Cadde/Sokak, Bina No, Daire No olmalı)");
+            (KimlikValidatorSecici.Sec(uyruk), tc),
+            (Telefon, telefon),
+            (Email, email),
+            (Adres, adres)
+        };
+        foreach (var (kural, deger) in kontroller)
+        {
+            var hata = kural.Validate(deger);
+            if (hata != null)
+            {
+                hatalar.Add(hata);
+            }
         }
 
         DateTime dogum = default;
